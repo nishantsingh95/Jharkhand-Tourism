@@ -443,7 +443,7 @@ const Marketplace = () => {
                                             </table>
                                         </div>
 
-                                        <div className="total-row" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid #1e293b', paddingTop: '1rem', fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b' }}>
+                                        <div className="total-row" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid #1e293b', paddingTop: '1rem', paddingBottom: '2rem', fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b' }}>
                                             <span>Total Amount</span>
                                             <span className="text-green" style={{ color: '#2e8157' }}>₹{receiptData.total}</span>
                                         </div>

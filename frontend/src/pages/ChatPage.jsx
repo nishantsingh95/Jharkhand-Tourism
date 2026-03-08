@@ -91,8 +91,8 @@ const ChatPage = () => {
                 </div>
 
                 <div className="chat-header text-center">
-                    <h2 style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--text-dark)', marginBottom: '0.5rem' }}>🤖 AI Travel Guide</h2>
-                    <p style={{ color: 'var(--text-light)', fontSize: '1.1rem', margin: 0 }}>
+                    <h2 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--text-dark)', marginBottom: '0.2rem' }}>🤖 AI Travel Guide</h2>
+                    <p style={{ color: 'var(--text-light)', fontSize: '0.95rem', margin: 0 }}>
                         {lang === 'en' ? "Your personal assistant for exploring Jharkhand." : "झारखंड की खोज के लिए आपका निजी सहायक।"}
                     </p>
                 </div>
