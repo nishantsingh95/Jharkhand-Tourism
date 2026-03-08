@@ -381,193 +381,154 @@ const Marketplace = () => {
 
                 {/* Cart Modal Overlay */}
                 {isCartOpen && (
-                    <div className="cart-modal-overlay no-print" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', justifyContent: 'flex-end', transition: 'opacity 0.3s' }}>
-                        <div className="cart-modal" style={{ width: orderSuccess ? '650px' : '600px', maxWidth: '100vw', height: '100vh', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column', boxShadow: '-10px 0 25px rgba(0,0,0,0.1)', animation: 'slideInRight 0.3s forwards' }}>
-                            <div style={{ background: 'white', padding: '1.5rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', zIndex: 10 }}>
-                                <h2 style={{ margin: 0, fontSize: '1.4rem', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div className="cart-modal-overlay no-print" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
+                        <div className="cart-modal" style={{ width: '100%', maxWidth: '580px', height: '85vh', backgroundColor: '#f8fafc', borderRadius: '24px', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px rgba(0,0,0,0.3)', overflow: 'hidden', animation: 'fadeScaleIn 0.3s forwards' }}>
+                            <div style={{ background: 'white', padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
+                                <h2 style={{ margin: 0, fontSize: '1.2rem', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     {orderSuccess ? '🎫 Booking Confirmation' : '🛍️ Your Cart'}
                                 </h2>
-                                {!orderSuccess && <button onClick={() => setIsCartOpen(false)} style={{ background: '#f1f5f9', border: 'none', width: '36px', height: '36px', borderRadius: '50%', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#e2e8f0'} onMouseOut={e => e.currentTarget.style.background = '#f1f5f9'}>✕</button>}
+                                <button onClick={() => setIsCartOpen(false)} style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>✕</button>
                             </div>
 
-                            {orderSuccess && receiptData ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                                    {/* Printable Receipt Area */}
-                                    <div id="printable-receipt" style={{ padding: '2rem', flex: 1, overflowY: 'auto', background: 'white', margin: '1.5rem', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-                                        <div style={{ textAlign: 'center', borderBottom: '2px dashed #cbd5e1', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
-                                            <h2 style={{ color: '#2e8157', margin: '0 0 0.5rem 0', fontSize: '1.8rem' }}>Jharkhand Tourism</h2>
-                                            <p style={{ margin: '0', color: '#64748b', fontSize: '0.9rem' }}>Official Booking Receipt</p>
-                                        </div>
-
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', fontSize: '0.95rem', color: '#334155' }}>
-                                            <div>
-                                                <p style={{ margin: '0 0 0.3rem 0' }}><strong>Order ID:</strong> {receiptData.orderId}</p>
-                                                <p style={{ margin: '0' }}><strong>Date:</strong> {receiptData.date}</p>
+                            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                                {orderSuccess && receiptData ? (
+                                    <div style={{ padding: '1rem' }}>
+                                        <div id="printable-receipt" style={{ padding: '1.5rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                                            <div style={{ textAlign: 'center', borderBottom: '2px dashed #cbd5e1', paddingBottom: '1rem', marginBottom: '1rem' }}>
+                                                <h2 style={{ color: '#2e8157', margin: '0 0 0.3rem 0', fontSize: '1.5rem' }}>Jharkhand Tourism</h2>
+                                                <p style={{ margin: '0', color: '#64748b', fontSize: '0.8rem' }}>Official Booking Receipt</p>
                                             </div>
-                                            <div style={{ textAlign: 'right' }}>
-                                                <p style={{ margin: '0 0 0.3rem 0' }}><strong>Payment:</strong> {receiptData.customer.paymentMethod.toUpperCase()}</p>
-                                                <p style={{ margin: '0', color: '#16a34a', fontWeight: 'bold' }}>PAID</p>
+
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', fontSize: '0.9rem', color: '#334155' }}>
+                                                <div>
+                                                    <p style={{ margin: '0 0 0.2rem 0' }}><strong>Order ID:</strong> {receiptData.orderId}</p>
+                                                    <p style={{ margin: '0' }}><strong>Date:</strong> {receiptData.date}</p>
+                                                </div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <p style={{ margin: '0 0 0.2rem 0' }}><strong>Payment:</strong> {receiptData.customer.paymentMethod.toUpperCase()}</p>
+                                                    <p style={{ margin: '0', color: '#16a34a', fontWeight: 'bold' }}>PAID</p>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        <div style={{ marginBottom: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '8px' }}>
-                                            <p style={{ margin: '0 0 0.3rem 0', color: '#1e293b' }}><strong>Customer Details:</strong></p>
-                                            <p style={{ margin: '0 0 0.3rem 0', color: '#475569' }}>{receiptData.customer.name}</p>
-                                            <p style={{ margin: '0 0 0.3rem 0', color: '#475569' }}>Ph: {receiptData.customer.phone}</p>
-                                            {receiptData.customer.aadhar && (
-                                                <p style={{ margin: '0', color: '#475569' }}>Aadhar: {receiptData.customer.aadhar.replace(/^(.{8})/, '********')}</p>
-                                            )}
-                                        </div>
+                                            <div style={{ marginBottom: '1rem', background: '#f8fafc', padding: '0.8rem', borderRadius: '8px', fontSize: '0.9rem' }}>
+                                                <p style={{ margin: '0 0 0.2rem 0', color: '#1e293b' }}><strong>Customer Details:</strong></p>
+                                                <p style={{ margin: '0' }}>{receiptData.customer.name}</p>
+                                                <p style={{ margin: '0' }}>Ph: {receiptData.customer.phone}</p>
+                                            </div>
 
-                                        <div style={{ marginBottom: '2rem' }}>
-                                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', marginBottom: '1rem' }}>
                                                 <thead>
-                                                    <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#1e293b', textAlign: 'left' }}>
-                                                        <th style={{ padding: '0.5rem 0' }}>Item / Service</th>
-                                                        <th className="text-center-col" style={{ padding: '0.5rem 0', textAlign: 'center' }}>Qty</th>
-                                                        <th className="text-right" style={{ padding: '0.5rem 0', textAlign: 'right' }}>Price</th>
+                                                    <tr style={{ borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+                                                        <th style={{ padding: '0.5rem 0' }}>Item</th>
+                                                        <th style={{ padding: '0.5rem 0', textAlign: 'center' }}>Qty</th>
+                                                        <th style={{ padding: '0.5rem 0', textAlign: 'right' }}>Price</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {receiptData.items.map(item => (
                                                         <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                            <td style={{ padding: '0.8rem 0', color: '#334155' }}>
-                                                                <div style={{ fontWeight: '500' }}>{item.name}</div>
-                                                                <div className="text-muted" style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.category === 'Guide' ? `Local Guide (${item.guideName})` : item.category === 'Homestay' ? `Accommodation (${item.location})` : item.category === 'Vehicle' ? `Rental (${item.location})` : 'Handcraft'}</div>
-                                                            </td>
-                                                            <td className="text-center-col" style={{ padding: '0.8rem 0', textAlign: 'center', color: '#475569' }}>{item.quantity}</td>
-                                                            <td className="text-right" style={{ padding: '0.8rem 0', textAlign: 'right', color: '#1e293b', fontWeight: '500' }}>₹{item.price * item.quantity}</td>
+                                                            <td style={{ padding: '0.6rem 0' }}>{item.name}</td>
+                                                            <td style={{ padding: '0.6rem 0', textAlign: 'center' }}>{item.quantity}</td>
+                                                            <td style={{ padding: '0.6rem 0', textAlign: 'right' }}>₹{item.price * item.quantity}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
                                             </table>
-                                        </div>
 
-                                        <div className="total-row" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid #1e293b', paddingTop: '1rem', paddingBottom: '2rem', fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b' }}>
-                                            <span>Total Amount</span>
-                                            <span className="text-green" style={{ color: '#2e8157' }}>₹{receiptData.total}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="no-print" style={{ padding: '1.5rem 2rem', background: 'white', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '1rem', boxShadow: '0 -4px 20px rgba(0,0,0,0.03)' }}>
-                                        <button onClick={handlePrintReceipt} style={{ flex: 1, padding: '1rem', background: '#f8fafc', color: '#1e293b', border: '1px solid #cbd5e1', borderRadius: '10px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = '#f8fafc'}>
-                                            📄 Download / Print
-                                        </button>
-                                        <button onClick={closeAndResetCart} style={{ flex: 1, padding: '1rem', background: '#2e8157', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(46,129,87,0.3)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                                            Done
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : cart.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '4rem 2rem', color: '#64748b', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                                    <div style={{ fontSize: '4rem', marginBottom: '1.5rem', opacity: 0.3 }}>🛒</div>
-                                    <h3 style={{ fontSize: '1.2rem', color: '#334155', marginBottom: '0.5rem' }}>Your cart is empty</h3>
-                                    <p style={{ marginBottom: '2rem' }}>Looks like you haven't added any authentic handcrafts yet.</p>
-                                    <button onClick={() => setIsCartOpen(false)} style={{ padding: '0.8rem 1.5rem', background: '#2e8157', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem', boxShadow: '0 4px 12px rgba(46,129,87,0.2)' }}>Start Exploring</button>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="cart-items" style={{ flex: 1, overflowY: 'auto', padding: '1.5rem 2rem' }}>
-                                        {cart.map(item => (
-                                            <div key={item.id} style={{ display: 'flex', gap: '1rem', marginBottom: '1.2rem', padding: '1rem', background: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                                                <img src={item.source} alt={item.name} style={{ width: '85px', height: '85px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #f1f5f9' }} />
-                                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                                                    <div>
-                                                        <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '1rem', color: '#1e293b', fontWeight: '600' }}>{item.name}</h4>
-                                                        <p style={{ margin: '0', color: '#f97316', fontWeight: '800', fontSize: '1.1rem' }}>₹{item.price}</p>
-                                                    </div>
-
-                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-                                                        <div style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                                            <button onClick={() => updateQuantity(item.id, -1)} style={{ background: 'none', border: 'none', padding: '0.3rem 0.8rem', cursor: 'pointer', fontWeight: 'bold', color: '#64748b' }}>-</button>
-                                                            <span style={{ margin: '0', fontSize: '0.95rem', fontWeight: '600', width: '20px', textAlign: 'center' }}>{item.quantity}</span>
-                                                            <button onClick={() => updateQuantity(item.id, 1)} style={{ background: 'none', border: 'none', padding: '0.3rem 0.8rem', cursor: 'pointer', fontWeight: 'bold', color: '#64748b' }}>+</button>
-                                                        </div>
-                                                        <button onClick={() => removeFromCart(item.id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.9rem', cursor: 'pointer', padding: '0.3rem 0.6rem', borderRadius: '6px' }} onMouseOver={e => e.currentTarget.style.background = '#fef2f2'} onMouseOut={e => e.currentTarget.style.background = 'none'}>🗑️ Remove</button>
-                                                    </div>
-                                                </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid #1e293b', paddingTop: '0.8rem', fontSize: '1.2rem', fontWeight: 'bold' }}>
+                                                <span>Total Amount</span>
+                                                <span style={{ color: '#2e8157' }}>₹{receiptData.total}</span>
                                             </div>
-                                        ))}
+                                        </div>
                                     </div>
-
-                                    <div className="cart-checkout-section" style={{ background: 'white', padding: '1.5rem 2rem 2.5rem', borderTop: '1px solid #e2e8f0', boxShadow: '0 -4px 20px rgba(0,0,0,0.03)', zIndex: 10 }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', fontSize: '1.25rem', color: '#1e293b' }}>
-                                            <span>Subtotal</span>
-                                            <span style={{ fontWeight: '800', color: '#2e8157', fontSize: '1.4rem' }}>₹{cartTotal}</span>
+                                ) : cart.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '4rem 2rem', color: '#64748b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                        <div style={{ fontSize: '4rem', marginBottom: '1.5rem', opacity: 0.3 }}>🛒</div>
+                                        <h3 style={{ fontSize: '1.2rem', color: '#334155', marginBottom: '0.5rem' }}>Your cart is empty</h3>
+                                        <p style={{ marginBottom: '2rem' }}>Looks like you haven't added anything yet.</p>
+                                        <button onClick={() => setIsCartOpen(false)} style={{ padding: '0.8rem 1.5rem', background: '#2e8157', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Start Exploring</button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="cart-items" style={{ padding: '1rem 1.5rem' }}>
+                                            {cart.map(item => (
+                                                <div key={item.id} style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', padding: '0.8rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                                    <img src={item.source} alt={item.name} style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '8px' }} />
+                                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                                        <div>
+                                                            <h4 style={{ margin: '0', fontSize: '1rem', color: '#1e293b' }}>{item.name}</h4>
+                                                            <p style={{ margin: '0', color: '#f97316', fontWeight: 'bold' }}>₹{item.price}</p>
+                                                        </div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                                                <button onClick={() => updateQuantity(item.id, -1)} style={{ background: 'none', border: 'none', padding: '0.2rem 0.6rem', cursor: 'pointer' }}>-</button>
+                                                                <span style={{ width: '20px', textAlign: 'center', fontSize: '0.9rem' }}>{item.quantity}</span>
+                                                                <button onClick={() => updateQuantity(item.id, 1)} style={{ background: 'none', border: 'none', padding: '0.2rem 0.6rem', cursor: 'pointer' }}>+</button>
+                                                            </div>
+                                                            <button onClick={() => removeFromCart(item.id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.9rem', cursor: 'pointer' }}>🗑️</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
 
-                                        <form onSubmit={handleCheckout} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                            <input
-                                                type="text"
-                                                placeholder="Full Name"
-                                                required
-                                                value={checkoutDetails.name}
-                                                onChange={e => setCheckoutDetails({ ...checkoutDetails, name: e.target.value })}
-                                                style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                            />
-                                            <input
-                                                type="email"
-                                                placeholder="Email Address"
-                                                required
-                                                value={checkoutDetails.email}
-                                                onChange={e => setCheckoutDetails({ ...checkoutDetails, email: e.target.value })}
-                                                style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                            />
-                                            <input
-                                                type="tel"
-                                                placeholder="Phone Number"
-                                                required
-                                                value={checkoutDetails.phone}
-                                                onChange={e => setCheckoutDetails({ ...checkoutDetails, phone: e.target.value })}
-                                                style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                            />
-                                            <textarea
-                                                placeholder="Delivery / Billing Address"
-                                                required
-                                                rows="2"
-                                                value={checkoutDetails.address}
-                                                onChange={e => setCheckoutDetails({ ...checkoutDetails, address: e.target.value })}
-                                                style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', resize: 'vertical' }}
-                                            />
-                                            {needsAadhar && (
-                                                <div style={{ position: 'relative' }}>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Aadhar Number (Mandatory for Stays/Rentals)"
-                                                        required
-                                                        maxLength="12"
-                                                        pattern="\d{12}"
-                                                        title="Please enter a valid 12-digit Aadhar Number"
-                                                        value={checkoutDetails.aadhar}
-                                                        onChange={e => setCheckoutDetails({ ...checkoutDetails, aadhar: e.target.value.replace(/\D/g, '').slice(0, 12) })}
-                                                        style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ef4444', outline: 'none', background: '#fef2f2' }}
-                                                    />
-                                                    <span style={{ fontSize: '0.75rem', color: '#ef4444', position: 'absolute', bottom: '-18px', left: '5px' }}>* Required for ID Verification</span>
-                                                </div>
-                                            )}
+                                        <div className="cart-checkout-section" style={{ background: 'white', padding: '1.5rem', borderTop: '1px solid #e2e8f0', boxShadow: '0 -4px 15px rgba(0,0,0,0.02)' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                                                <span>Subtotal</span>
+                                                <span style={{ color: '#2e8157' }}>₹{cartTotal}</span>
+                                            </div>
 
-                                            <div style={{ marginTop: needsAadhar ? '1rem' : '0.5rem' }}>
-                                                <p style={{ margin: '0 0 0.5rem 0', fontWeight: '600', color: '#4a5568', fontSize: '0.95rem' }}>Payment Method:</p>
-                                                <div style={{ display: 'flex', gap: '1rem' }}>
-                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', flex: 1, padding: '0.8rem', border: checkoutDetails.paymentMethod === 'upi' ? '2px solid #2e8157' : '1px solid #cbd5e1', borderRadius: '8px', background: checkoutDetails.paymentMethod === 'upi' ? '#f0fdf4' : 'white' }}>
-                                                        <input type="radio" name="payment" value="upi" checked={checkoutDetails.paymentMethod === 'upi'} onChange={() => setCheckoutDetails({ ...checkoutDetails, paymentMethod: 'upi' })} style={{ cursor: 'pointer' }} />
+                                            <form onSubmit={handleCheckout} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                                <input type="text" placeholder="Full Name" required value={checkoutDetails.name} onChange={e => setCheckoutDetails({ ...checkoutDetails, name: e.target.value })} style={{ padding: '0.7rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                                                <input type="email" placeholder="Email Address" required value={checkoutDetails.email} onChange={e => setCheckoutDetails({ ...checkoutDetails, email: e.target.value })} style={{ padding: '0.7rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                                                <input type="tel" placeholder="Phone Number" required value={checkoutDetails.phone} onChange={e => setCheckoutDetails({ ...checkoutDetails, phone: e.target.value })} style={{ padding: '0.7rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                                                <textarea placeholder="Delivery Address" required rows="2" value={checkoutDetails.address} onChange={e => setCheckoutDetails({ ...checkoutDetails, address: e.target.value })} style={{ padding: '0.7rem', borderRadius: '8px', border: '1px solid #cbd5e1', resize: 'none' }} />
+
+                                                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                                    <label style={{ flex: 1, padding: '0.6rem', border: '1px solid #cbd5e1', borderRadius: '8px', textAlign: 'center', cursor: 'pointer', background: checkoutDetails.paymentMethod === 'upi' ? '#f0fdf4' : 'white', borderColor: checkoutDetails.paymentMethod === 'upi' ? '#2e8157' : '#cbd5e1' }}>
+                                                        <input type="radio" value="upi" checked={checkoutDetails.paymentMethod === 'upi'} onChange={() => setCheckoutDetails({ ...checkoutDetails, paymentMethod: 'upi' })} style={{ display: 'none' }} />
                                                         <strong>UPI</strong>
                                                     </label>
-                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', flex: 1, padding: '0.8rem', border: checkoutDetails.paymentMethod === 'cash' ? '2px solid #2e8157' : '1px solid #cbd5e1', borderRadius: '8px', background: checkoutDetails.paymentMethod === 'cash' ? '#f0fdf4' : 'white' }}>
-                                                        <input type="radio" name="payment" value="cash" checked={checkoutDetails.paymentMethod === 'cash'} onChange={() => setCheckoutDetails({ ...checkoutDetails, paymentMethod: 'cash' })} style={{ cursor: 'pointer' }} />
+                                                    <label style={{ flex: 1, padding: '0.6rem', border: '1px solid #cbd5e1', borderRadius: '8px', textAlign: 'center', cursor: 'pointer', background: checkoutDetails.paymentMethod === 'cash' ? '#f0fdf4' : 'white', borderColor: checkoutDetails.paymentMethod === 'cash' ? '#2e8157' : '#cbd5e1' }}>
+                                                        <input type="radio" value="cash" checked={checkoutDetails.paymentMethod === 'cash'} onChange={() => setCheckoutDetails({ ...checkoutDetails, paymentMethod: 'cash' })} style={{ display: 'none' }} />
                                                         <strong>Cash</strong>
                                                     </label>
                                                 </div>
-                                            </div>
 
-                                            <button type="submit" style={{ background: '#2e8157', color: 'white', border: 'none', padding: '1.1rem', borderRadius: '10px', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer', marginTop: '1rem', transition: 'all 0.3s', boxShadow: '0 4px 15px rgba(46,129,87,0.3)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                                                Checkout • ₹{cartTotal}
-                                            </button>
-                                        </form>
+                                                <button type="submit" style={{ background: '#2e8157', color: 'white', border: 'none', padding: '0.9rem', borderRadius: '10px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer', marginTop: '0.5rem' }}>Checkout • ₹{cartTotal}</button>
+                                            </form>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* FIXED FOOTER — always visible, never scrolls */}
+                            {orderSuccess ? (
+                                <div style={{ padding: '0.8rem 1rem', background: 'white', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '0.8rem', flexShrink: 0 }}>
+                                    <button onClick={handlePrintReceipt} style={{ flex: 1, padding: '0.75rem', background: '#f8fafc', color: '#1e293b', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer' }}>📄 Download</button>
+                                    <button onClick={closeAndResetCart} style={{ flex: 1, padding: '0.75rem', background: '#2e8157', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer' }}>Done ✓</button>
+                                </div>
+                            ) : cart.length > 0 ? (
+                                <div style={{ padding: '0.8rem 1rem', background: 'white', borderTop: '1px solid #e2e8f0', flexShrink: 0 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.6rem', fontSize: '1rem', fontWeight: 'bold', color: '#1e293b' }}>
+                                        <span>Subtotal ({cart.reduce((s, i) => s + i.quantity, 0)} items)</span>
+                                        <span style={{ color: '#2e8157' }}>₹{cartTotal}</span>
                                     </div>
-                                </>
-                            )}
+                                    <form onSubmit={handleCheckout} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <input type="text" placeholder="Full Name" required value={checkoutDetails.name} onChange={e => setCheckoutDetails({ ...checkoutDetails, name: e.target.value })} style={{ flex: 1, padding: '0.55rem 0.7rem', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }} />
+                                            <input type="tel" placeholder="Phone" required value={checkoutDetails.phone} onChange={e => setCheckoutDetails({ ...checkoutDetails, phone: e.target.value })} style={{ flex: 1, padding: '0.55rem 0.7rem', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }} />
+                                        </div>
+                                        <input type="email" placeholder="Email Address" required value={checkoutDetails.email} onChange={e => setCheckoutDetails({ ...checkoutDetails, email: e.target.value })} style={{ padding: '0.55rem 0.7rem', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }} />
+                                        <textarea placeholder="Delivery Address" required rows="2" value={checkoutDetails.address} onChange={e => setCheckoutDetails({ ...checkoutDetails, address: e.target.value })} style={{ padding: '0.55rem 0.7rem', borderRadius: '7px', border: '1px solid #cbd5e1', resize: 'none', fontSize: '0.85rem' }} />
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <label onClick={() => setCheckoutDetails({ ...checkoutDetails, paymentMethod: 'upi' })} style={{ flex: 1, padding: '0.5rem', border: `2px solid ${checkoutDetails.paymentMethod === 'upi' ? '#2e8157' : '#e2e8f0'}`, borderRadius: '7px', textAlign: 'center', cursor: 'pointer', background: checkoutDetails.paymentMethod === 'upi' ? '#f0fdf4' : 'white', fontSize: '0.85rem', fontWeight: '600' }}>UPI</label>
+                                            <label onClick={() => setCheckoutDetails({ ...checkoutDetails, paymentMethod: 'cash' })} style={{ flex: 1, padding: '0.5rem', border: `2px solid ${checkoutDetails.paymentMethod === 'cash' ? '#2e8157' : '#e2e8f0'}`, borderRadius: '7px', textAlign: 'center', cursor: 'pointer', background: checkoutDetails.paymentMethod === 'cash' ? '#f0fdf4' : 'white', fontSize: '0.85rem', fontWeight: '600' }}>Cash</label>
+                                        </div>
+                                        <button type="submit" style={{ background: '#2e8157', color: 'white', border: 'none', padding: '0.85rem', borderRadius: '10px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer' }}>Checkout • ₹{cartTotal}</button>
+                                    </form>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 )}
@@ -582,7 +543,6 @@ const Marketplace = () => {
                                         <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" style={{ height: '30px', marginBottom: '1rem' }} />
                                         <div style={{ background: 'white', padding: '1rem', margin: '0 auto', width: 'fit-content', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             <svg width="150" height="150" viewBox="0 0 100 100" style={{ fill: '#334155' }}>
-                                                {/* Dummy QR Code Pattern */}
                                                 <rect x="10" y="10" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="4" />
                                                 <rect x="65" y="10" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="4" />
                                                 <rect x="10" y="65" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="4" />

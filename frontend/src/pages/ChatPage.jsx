@@ -90,14 +90,14 @@ const ChatPage = () => {
                     </span>
                 </div>
 
-                <div className="chat-header text-center">
-                    <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-dark)', marginBottom: '0.1rem' }}>🤖 AI Travel Guide</h2>
-                    <p style={{ color: 'var(--text-light)', fontSize: '0.85rem', margin: 0 }}>
-                        {lang === 'en' ? "Your personal assistant for exploring Jharkhand." : "झारखंड की खोज के लिए आपका निजी सहायक।"}
+                <div className="chat-header text-center" style={{ padding: '0.3rem' }}>
+                    <h2 style={{ fontSize: '1rem', fontWeight: '800', color: 'var(--text-dark)', marginBottom: '0.05rem' }}>🤖 AI Travel Guide</h2>
+                    <p style={{ color: 'var(--text-light)', fontSize: '0.75rem', margin: 0 }}>
+                        {lang === 'en' ? "Your assistant." : "आपका सहायक।"}
                     </p>
                 </div>
 
-                <div className="chat-body scrollbar-hide" style={{ height: '62vh', overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                <div className="chat-body scrollbar-hide" style={{ height: '28vh', overflowY: 'auto', padding: '0.3rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                     {messages.map((msg, idx) => (
                         <div key={idx} className={`chat-message ${msg.sender === 'user' ? 'user-message' : 'ai-message'}`}>
                             {msg.text}
