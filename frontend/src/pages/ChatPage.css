@@ -1,6 +1,6 @@
 .chat-page-wrapper {
-    padding: 1.5rem 1rem 0.5rem 1rem;
-    min-height: 40vh;
+    padding: 6rem 1rem 2rem 1rem;
+    min-height: 80vh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -9,8 +9,8 @@
 
 .chat-container {
     width: 100%;
-    max-width: 320px;
-    height: 40vh;
+    max-width: 900px;
+    height: 75vh;
     display: flex;
     flex-direction: column;
     background: #ffffff;
@@ -21,7 +21,7 @@
 }
 
 .chat-header {
-    padding: 0.3rem 1rem;
+    padding: 1.5rem 2rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     background: #fafafc;
 }
@@ -59,10 +59,10 @@
 }
 
 .chat-footer {
-    padding: 0.5rem 0.8rem;
+    padding: 1.5rem 2rem;
     border-top: 1px solid rgba(0, 0, 0, 0.05);
     display: flex;
-    gap: 0.3rem;
+    gap: 1rem;
     background: #ffffff;
 }
 
