@@ -215,9 +215,9 @@ const AITripPlanner = () => {
     return (
         <div className="ai-planner-wrapper page-container" style={{ paddingTop: '1rem', paddingBottom: '4rem' }}>
             <div className="container" style={{ maxWidth: '900px', margin: '0 auto' }}>
-                <div className="ai-planner-header text-center" style={{ marginBottom: '1.5rem' }}>
-                    <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--text-dark)' }}>✨ AI Trip Itinerary Generator</h1>
-                    <p style={{ color: 'var(--text-light)', fontSize: '1rem' }}>Let our Smart AI craft the perfect detailed trip to Jharkhand based on your exact preferences.</p>
+                <div className="ai-planner-header text-center" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+                    <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--text-dark)', textAlign: 'center' }}>✨ AI Trip Itinerary Generator</h1>
+                    <p style={{ color: 'var(--text-light)', fontSize: '1rem', textAlign: 'center' }}>Let our Smart AI craft the perfect detailed trip to Jharkhand based on your exact preferences.</p>
                 </div>
 
                 {!result && !loading && (
