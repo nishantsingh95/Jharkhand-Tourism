@@ -21,7 +21,7 @@
 }
 
 .chat-header {
-    padding: 1rem 2rem;
+    padding: 0.8rem 1.5rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     background: #fafafc;
 }
@@ -36,11 +36,11 @@
 }
 
 .chat-message {
-    max-width: 75%;
-    padding: 1.2rem 1.5rem;
-    border-radius: 20px;
-    font-size: 1.1rem;
-    line-height: 1.5;
+    max-width: 80%;
+    padding: 0.8rem 1.2rem;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    line-height: 1.4;
     animation: fadeIn 0.3s ease;
 }
 
@@ -59,10 +59,10 @@
 }
 
 .chat-footer {
-    padding: 1.5rem 2rem;
+    padding: 1rem 1.5rem;
     border-top: 1px solid rgba(0, 0, 0, 0.05);
     display: flex;
-    gap: 1rem;
+    gap: 0.8rem;
     background: #ffffff;
 }
 

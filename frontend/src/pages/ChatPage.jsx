@@ -91,13 +91,13 @@ const ChatPage = () => {
                 </div>
 
                 <div className="chat-header text-center">
-                    <h2 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--text-dark)', marginBottom: '0.2rem' }}>🤖 AI Travel Guide</h2>
-                    <p style={{ color: 'var(--text-light)', fontSize: '0.95rem', margin: 0 }}>
+                    <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-dark)', marginBottom: '0.1rem' }}>🤖 AI Travel Guide</h2>
+                    <p style={{ color: 'var(--text-light)', fontSize: '0.85rem', margin: 0 }}>
                         {lang === 'en' ? "Your personal assistant for exploring Jharkhand." : "झारखंड की खोज के लिए आपका निजी सहायक।"}
                     </p>
                 </div>
 
-                <div className="chat-body scrollbar-hide" style={{ height: '55vh', overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="chat-body scrollbar-hide" style={{ height: '62vh', overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     {messages.map((msg, idx) => (
                         <div key={idx} className={`chat-message ${msg.sender === 'user' ? 'user-message' : 'ai-message'}`}>
                             {msg.text}
