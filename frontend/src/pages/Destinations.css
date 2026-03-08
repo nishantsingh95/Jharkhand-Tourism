@@ -1,0 +1,126 @@
+.destinations-page-layout {
+    display: flex;
+    height: 100vh;
+    padding-top: 5rem;
+    /* Space for navbar */
+    background: #f9f9f9;
+}
+
+.map-column {
+    flex: 0 0 65%;
+    height: 100%;
+    padding: 1.5rem;
+    padding-right: 0.75rem;
+}
+
+.content-column {
+    flex: 0 0 35%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    padding-left: 0.75rem;
+    overflow: hidden;
+}
+
+.filter-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.filter-dropdown-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.filter-dropdown {
+    width: 100%;
+    padding: 1.2rem 3rem 1.2rem 1.5rem;
+    /* extra right padding for arrow */
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    outline: none;
+    background-color: white;
+    color: var(--text-dark);
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    transition: all 0.3s ease;
+}
+
+.filter-dropdown:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
+}
+
+.filter-dropdown:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.15);
+    /* matching the green primary color */
+}
+
+.filter-dropdown-icon {
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    /* Crucial: lets clicks pass through to the select */
+    color: var(--primary);
+    width: 22px;
+    height: 22px;
+    transition: transform 0.3s ease;
+}
+
+.filter-dropdown:focus+.filter-dropdown-icon {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.scrollable-cards {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+/* Custom Scrollbar for cards */
+.scrollable-cards::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollable-cards::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+@media (max-width: 992px) {
+    .destinations-page-layout {
+        flex-direction: column;
+        height: auto;
+        overflow-y: visible;
+    }
+
+    .map-column {
+        height: 400px;
+        padding: 1rem;
+    }
+
+    .content-column {
+        padding: 1rem;
+        overflow: visible;
+        height: auto;
+    }
+
+    .filter-sidebar {
+        margin-bottom: 1.5rem;
+    }
+}
