@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { productsData } from '../data/productsData';
 import './Marketplace.css';
 
@@ -449,7 +449,7 @@ const Marketplace = () => {
                                         <button onClick={() => setIsCartOpen(false)} style={{ padding: '0.8rem 1.5rem', background: '#2e8157', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Start Exploring</button>
                                     </div>
                                 ) : (
-                                    <>
+                                    <div style={{ flex: 1, overflowY: 'auto', padding: '0.8rem 1rem' }}>
                                         <div className="cart-items" style={{ padding: '1rem 1.5rem' }}>
                                             {cart.map(item => (
                                                 <div key={item.id} style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', padding: '0.8rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
@@ -471,34 +471,7 @@ const Marketplace = () => {
                                                 </div>
                                             ))}
                                         </div>
-
-                                        <div className="cart-checkout-section" style={{ background: 'white', padding: '1.5rem', borderTop: '1px solid #e2e8f0', boxShadow: '0 -4px 15px rgba(0,0,0,0.02)' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>
-                                                <span>Subtotal</span>
-                                                <span style={{ color: '#2e8157' }}>₹{cartTotal}</span>
-                                            </div>
-
-                                            <form onSubmit={handleCheckout} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                                                <input type="text" placeholder="Full Name" required value={checkoutDetails.name} onChange={e => setCheckoutDetails({ ...checkoutDetails, name: e.target.value })} style={{ padding: '0.7rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                                                <input type="email" placeholder="Email Address" required value={checkoutDetails.email} onChange={e => setCheckoutDetails({ ...checkoutDetails, email: e.target.value })} style={{ padding: '0.7rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                                                <input type="tel" placeholder="Phone Number" required value={checkoutDetails.phone} onChange={e => setCheckoutDetails({ ...checkoutDetails, phone: e.target.value })} style={{ padding: '0.7rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                                                <textarea placeholder="Delivery Address" required rows="2" value={checkoutDetails.address} onChange={e => setCheckoutDetails({ ...checkoutDetails, address: e.target.value })} style={{ padding: '0.7rem', borderRadius: '8px', border: '1px solid #cbd5e1', resize: 'none' }} />
-
-                                                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                                                    <label style={{ flex: 1, padding: '0.6rem', border: '1px solid #cbd5e1', borderRadius: '8px', textAlign: 'center', cursor: 'pointer', background: checkoutDetails.paymentMethod === 'upi' ? '#f0fdf4' : 'white', borderColor: checkoutDetails.paymentMethod === 'upi' ? '#2e8157' : '#cbd5e1' }}>
-                                                        <input type="radio" value="upi" checked={checkoutDetails.paymentMethod === 'upi'} onChange={() => setCheckoutDetails({ ...checkoutDetails, paymentMethod: 'upi' })} style={{ display: 'none' }} />
-                                                        <strong>UPI</strong>
-                                                    </label>
-                                                    <label style={{ flex: 1, padding: '0.6rem', border: '1px solid #cbd5e1', borderRadius: '8px', textAlign: 'center', cursor: 'pointer', background: checkoutDetails.paymentMethod === 'cash' ? '#f0fdf4' : 'white', borderColor: checkoutDetails.paymentMethod === 'cash' ? '#2e8157' : '#cbd5e1' }}>
-                                                        <input type="radio" value="cash" checked={checkoutDetails.paymentMethod === 'cash'} onChange={() => setCheckoutDetails({ ...checkoutDetails, paymentMethod: 'cash' })} style={{ display: 'none' }} />
-                                                        <strong>Cash</strong>
-                                                    </label>
-                                                </div>
-
-                                                <button type="submit" style={{ background: '#2e8157', color: 'white', border: 'none', padding: '0.9rem', borderRadius: '10px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer', marginTop: '0.5rem' }}>Checkout • ₹{cartTotal}</button>
-                                            </form>
-                                        </div>
-                                    </>
+                                    </div>
                                 )}
                             </div>
 
