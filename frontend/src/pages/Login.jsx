@@ -15,23 +15,49 @@ const Login = () => {
         e.preventDefault();
         setError('');
 
+        const rawUrl = import.meta.env.VITE_API_URL?.trim();
+        // Fallback logic: If env var points to localhost but we are on a production site, ignore it and use origin.
+        const isProduction = !window.location.hostname.includes('localhost');
+        const apiUrl = (rawUrl && (!rawUrl.includes('localhost') || !isProduction))
+            ? rawUrl
+            : (isProduction ? window.location.origin : 'https://jharkhand-tourism-hsfs.onrender.com');
+
+        if (!apiUrl) {
+            setError('API URL not configured. Please set VITE_API_URL.');
+            return;
+        }
+
         try {
-            const res = await fetch('http://localhost:5000/api/auth/login', {
+            console.log('Login request to:', `${apiUrl}/api/auth/login`);
+
+            const res = await fetch(`${apiUrl}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
-            const data = await res.json();
+            let data = {};
+            try {
+                const text = await res.text();
+                data = text ? JSON.parse(text) : {};
+            } catch (_) {
+                setError(`Server error (${res.status}) while reading response. Please try again.`);
+                return;
+            }
 
             if (res.ok) {
-                // Save user and token to localStorage for persistent login
                 localStorage.setItem('user', JSON.stringify(data));
                 navigate('/');
             } else {
-                setError(data.message || 'Login failed');
+                const msg = data && data.message ? data.message : 'Login failed';
+                setError(`${msg} (code ${res.status})`);
             }
         } catch (err) {
-            setError('Server error during login.');
+            const isNetworkError = !err.message || /fetch|network|failed to fetch/i.test(String(err.message));
+            if (isNetworkError) {
+                setError('Cannot connect to server. Check your connection and try again.');
+            } else {
+                setError(`Server error during login: ${err.message || 'Unknown error'}`);
+            }
         }
     };
 

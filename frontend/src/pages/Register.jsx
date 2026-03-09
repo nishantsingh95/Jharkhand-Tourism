@@ -14,22 +14,40 @@ const Register = () => {
         e.preventDefault();
         setError('');
 
+        const rawUrl = import.meta.env.VITE_API_URL?.trim();
+        // Fallback logic: If env var points to localhost but we are on a production site, ignore it and use origin.
+        const isProduction = !window.location.hostname.includes('localhost');
+        const apiUrl = (rawUrl && (!rawUrl.includes('localhost') || !isProduction))
+            ? rawUrl
+            : (isProduction ? window.location.origin : 'http://localhost:5000');
+
+        if (!apiUrl) {
+            setError('API URL not configured. Please set VITE_API_URL.');
+            return;
+        }
+
+        console.log('Register payload', { name, email, password }, 'API URL', apiUrl);
         try {
-            const res = await fetch('http://localhost:5000/api/auth/register', {
+            const res = await fetch(`${apiUrl}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password })
             });
-            const data = await res.json();
-
+            let data = {};
+            try {
+                data = await res.json();
+            } catch (_) {
+                setError(res.ok ? 'Registration failed.' : `Server error (${res.status}). Please try again.`);
+                return;
+            }
             if (res.ok) {
-                // To follow the flow: Register -> Login -> Home
                 navigate('/login', { state: { message: 'Registration successful! Please login.' } });
             } else {
                 setError(data.message || 'Registration failed');
             }
         } catch (err) {
-            setError('Server error during registration.');
+            const isNetworkError = !err.message || /fetch|network|failed to fetch/i.test(String(err.message));
+            setError(isNetworkError ? 'Cannot connect to server. Check your connection and try again.' : (err.message || 'Server error during registration.'));
         }
     };
 
