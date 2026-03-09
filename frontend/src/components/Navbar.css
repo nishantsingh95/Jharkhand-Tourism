@@ -141,8 +141,97 @@
         padding: 0.8rem 1.5rem;
     }
 
+    /* Mobile Menu Toggle (Hamburger) */
+    .mobile-menu-toggle {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(0, 0, 0, 0.05);
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        z-index: 1002;
+        order: 2;
+    }
+
+    .hamburger {
+        display: block;
+        width: 20px;
+        height: 2px;
+        background: var(--primary);
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .hamburger::before,
+    .hamburger::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 2px;
+        background: var(--primary);
+        left: 0;
+        transition: all 0.3s ease;
+    }
+
+    .hamburger::before {
+        top: -6px;
+    }
+
+    .hamburger::after {
+        bottom: -6px;
+    }
+
+    .mobile-menu-toggle.active .hamburger {
+        background: transparent;
+    }
+
+    .mobile-menu-toggle.active .hamburger::before {
+        transform: rotate(45deg);
+        top: 0;
+    }
+
+    .mobile-menu-toggle.active .hamburger::after {
+        transform: rotate(-45deg);
+        bottom: 0;
+    }
+
+    /* Mobile Nav Links */
     .nav-links {
-        display: none;
-        /* Mobile menu needed but out of scope for beautification right now */
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 280px;
+        height: 100vh;
+        background: white;
+        flex-direction: column;
+        padding: 6rem 2rem 2rem 2rem;
+        gap: 1rem;
+        border-radius: 0;
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 1001;
+        display: flex;
+        /* Override display: none */
+    }
+
+    .nav-links.mobile-active {
+        right: 0;
+    }
+
+    .nav-links a {
+        font-size: 1.1rem;
+        width: 100%;
+        text-align: left;
+        padding: 1rem 1.5rem;
+    }
+
+    .nav-cta {
+        order: 1;
+        margin-left: auto;
+        margin-right: 1rem;
     }
 }

@@ -6,6 +6,8 @@ const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const [user, setUser] = useState(null);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
     const location = useLocation();
     const navigate = useNavigate();
     const isHome = location.pathname === '/';
@@ -22,8 +24,9 @@ const Navbar = () => {
             setUser(JSON.parse(storedUser));
         }
 
-        // Close dropdown when route changes
+        // Close dropdown and mobile menu when route changes
         setShowDropdown(false);
+        setMobileMenuOpen(false);
 
         return () => window.removeEventListener('scroll', handleScroll);
     }, [location]);
@@ -40,14 +43,22 @@ const Navbar = () => {
                 <Link to="/" className="nav-logo">
                     <span className="logo-text">Jharkhand<span className="logo-accent">Tourism</span></span>
                 </Link>
-                <ul className="nav-links">
-                    <li><NavLink to="/" end>Home</NavLink></li>
-                    <li><NavLink to="/destinations">Destinations</NavLink></li>
-                    <li><NavLink to="/itinerary">Itinerary</NavLink></li>
-                    <li><NavLink to="/chat">Chat</NavLink></li>
-                    <li><NavLink to="/marketplace">Marketplace</NavLink></li>
-                    <li><NavLink to="/feedback">Feedback</NavLink></li>
-                    <li><NavLink to="/dashboard">Dashboard</NavLink></li>
+                <button
+                    className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    aria-label="Toggle menu"
+                >
+                    <span className="hamburger"></span>
+                </button>
+
+                <ul className={`nav-links ${mobileMenuOpen ? 'mobile-active' : ''}`}>
+                    <li><NavLink to="/" end onClick={() => setMobileMenuOpen(false)}>Home</NavLink></li>
+                    <li><NavLink to="/destinations" onClick={() => setMobileMenuOpen(false)}>Destinations</NavLink></li>
+                    <li><NavLink to="/itinerary" onClick={() => setMobileMenuOpen(false)}>Itinerary</NavLink></li>
+                    <li><NavLink to="/chat" onClick={() => setMobileMenuOpen(false)}>Chat</NavLink></li>
+                    <li><NavLink to="/marketplace" onClick={() => setMobileMenuOpen(false)}>Marketplace</NavLink></li>
+                    <li><NavLink to="/feedback" onClick={() => setMobileMenuOpen(false)}>Feedback</NavLink></li>
+                    <li><NavLink to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</NavLink></li>
                 </ul>
                 <div className="nav-cta" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     {user ? (

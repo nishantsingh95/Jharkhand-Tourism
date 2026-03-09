@@ -4,16 +4,48 @@ import DestinationCard from '../components/DestinationCard';
 import './Home.css';
 
 const Home = () => {
-    const [featured, setFeatured] = useState([]);
+    const [featured, setFeatured] = useState([
+        {
+            _id: 'default1',
+            name: 'Netarhat',
+            location: 'Latehar District',
+            description: "Known as the 'Queen of Chotanagpur', Netarhat is a pristine hill station famous for its sunrise and sunset views.",
+            image: 'https://upload.wikimedia.org/wikipedia/commons/c/ce/Pine_trees_of_Netarhat_Hill_station.jpg',
+            rating: 4.8
+        },
+        {
+            _id: 'default2',
+            name: 'Deoghar Baidyanath Temple',
+            location: 'Deoghar District',
+            description: "A major Hindu pilgrimage center featuring the famous Baidyanath Jyotirlinga, drawing millions of devotees.",
+            image: 'https://upload.wikimedia.org/wikipedia/commons/c/cf/Baidyanath_Temple_Deoghar.jpg',
+            rating: 4.6
+        },
+        {
+            _id: 'default3',
+            name: 'Betla National Park',
+            location: 'Palamu District',
+            description: "A beautiful national park offering safaris, elephants, and wildlife viewing amidst dense forests.",
+            image: 'https://upload.wikimedia.org/wikipedia/commons/2/23/Betla_National_Park_Gate.jpg',
+            rating: 4.9
+        }
+    ]);
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/destinations')
+        const rawUrl = import.meta.env.VITE_API_URL?.trim();
+        const isProduction = !window.location.hostname.includes('localhost');
+        const apiUrl = (rawUrl && (!rawUrl.includes('localhost') || !isProduction))
+            ? rawUrl
+            : (isProduction ? window.location.origin : 'http://localhost:5000');
+
+        fetch(`${apiUrl}/api/destinations`)
             .then(res => res.json())
             .then(data => {
-                // Set top 3 as featured
-                setFeatured(data.slice(0, 3));
+                if (data && data.length > 0) {
+                    setFeatured(data.slice(0, 3));
+                }
             })
-            .catch(err => console.error("Error fetching destinations", err));
+            .catch(err => console.error("Error fetching destinations, using defaults", err));
     }, []);
 
     return (
