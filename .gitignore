@@ -4,11 +4,17 @@ backend/node_modules/
 frontend/node_modules/
 
 # Environment files
-.env
-.env.local
-.env.*.local
-backend/.env
-frontend/.env
+# .env
+# .env.local
+# .env.*.local
+# backend/.env
+# frontend/.env
+# Allow .env files specifically
+!.env
+!backend/.env
+!frontend/.env
+!frontend/.env.production
+
 
 # Build outputs
 dist/
