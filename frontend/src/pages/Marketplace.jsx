@@ -51,7 +51,8 @@ const Marketplace = () => {
         if (storedRemoved) setRemovedItems(JSON.parse(storedRemoved));
     }, []);
 
-    const allItems = [...productsData, ...customItems].filter(item => !removedItems.includes(item.id));
+    const removedSet = new Set((removedItems || []).map(String));
+    const allItems = [...productsData, ...customItems].filter(item => !removedSet.has(String(item.id)));
 
     const getCategoryForTab = (tab) => {
         switch (tab) {
@@ -74,11 +75,15 @@ const Marketplace = () => {
     const uniqueSubCategories = [...new Set(currentCategoryItems.map(item => item.subCategory).filter(Boolean))]
         .filter(sub => !excludedFilters.includes(sub.toLowerCase()));
 
+    // If user switches tab, old subCategory (e.g. "Bamboo") may not exist for Food/Events — that hid all items.
+    const effectiveSubCategory =
+        subCategory === 'All' || uniqueSubCategories.includes(subCategory) ? subCategory : 'All';
+
     const filteredItems = allItems.filter(item => {
         const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.desc.toLowerCase().includes(searchQuery.toLowerCase());
+            (item.desc && item.desc.toLowerCase().includes(searchQuery.toLowerCase()));
 
-        const matchesSubCategory = subCategory === 'All' || item.subCategory === subCategory;
+        const matchesSubCategory = effectiveSubCategory === 'All' || item.subCategory === effectiveSubCategory;
 
         let matchesRating = true;
         if (minRating === '4.0 & Above') matchesRating = parseFloat(item.rating) >= 4.0;
@@ -353,7 +358,7 @@ const Marketplace = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', cursor: 'pointer' }}>
                         <span style={{ color: '#4a5568' }}>🏷️</span>
                         <select
-                            value={subCategory}
+                            value={effectiveSubCategory}
                             onChange={(e) => setSubCategory(e.target.value)}
                             style={{ border: 'none', background: 'transparent', outline: 'none', color: '#4a5568', fontSize: '0.95rem', cursor: 'pointer', paddingRight: '1rem' }}>
                             <option value="All">All {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</option>
@@ -402,7 +407,7 @@ const Marketplace = () => {
                 {filteredItems.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '5rem', background: 'white', borderRadius: '24px', color: '#64748b', marginTop: '2rem' }}>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>No {activeTab} items found.</h2>
-                        <p>Check back later or change your filters!</p>
+                        <p>Try setting filters to &quot;All&quot; and clear the search box. If you use the installed app, update it or clear site data so the latest catalog loads.</p>
                     </div>
                 ) : (
                     <div className="marketplace-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>

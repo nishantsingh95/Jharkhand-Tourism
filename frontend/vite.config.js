@@ -43,6 +43,8 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
+          skipWaiting: true,
+          clientsClaim: true,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,woff2,webp,json}'],
           globIgnores: ['**/crafts/**'],
           navigateFallback: '/index.html',

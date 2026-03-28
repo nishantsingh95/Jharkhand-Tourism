@@ -3,6 +3,17 @@
   command = "npm install --legacy-peer-deps && npm run build"
   publish = "dist"
 
+# Avoid stale SPA shell (and old JS hashes) after deploy — helps PWA users see new marketplace data.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
