@@ -464,7 +464,7 @@ const Marketplace = () => {
                                             {item.experience && <span style={{ color: '#10b981', fontSize: '0.9rem', marginLeft: '10px' }}>⭐ {item.experience} Exp.</span>}
                                         </p>
                                     )}
-                                    {(item.category === 'Homestay' || item.category === 'Vehicle' || item.category === 'Event') && item.location && (
+                                    {(item.category === 'Homestay' || item.category === 'Vehicle' || item.category === 'Event' || item.category === 'Food') && item.location && (
                                         <p style={{ margin: '0 0 0.5rem 0', color: '#ef4444', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem' }}>
                                             📍 {item.location}
                                         </p>
@@ -476,10 +476,10 @@ const Marketplace = () => {
                                     )}
                                     <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '1rem', minHeight: '40px' }}>{item.desc}</p>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        {item.price && parseFloat(item.price) > 0 ? (
+                                        {Number(item.price) > 0 ? (
                                             <span style={{ fontSize: '1.25rem', fontWeight: '800', color: '#2e8157' }}>
                                                 ₹{item.price}
-                                                {item.category === 'Guide' || item.category === 'Vehicle' ? '/day' : item.category === 'Homestay' ? '/night' : item.category === 'Event' ? '/ticket' : ''}
+                                                {item.category === 'Guide' || item.category === 'Vehicle' ? '/day' : item.category === 'Homestay' ? '/night' : item.category === 'Event' ? '/ticket' : item.category === 'Food' ? '/plate' : ''}
                                             </span>
                                         ) : (
                                             <span style={{ fontSize: '1.25rem', fontWeight: '800', color: '#2e8157' }}>{item.category === 'Event' ? 'Free Entry' : 'Free'}</span>
