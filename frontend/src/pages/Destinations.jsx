@@ -1,14 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import markerIconPng from 'leaflet/dist/images/marker-icon.png';
+import markerIcon2xPng from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadowPng from 'leaflet/dist/images/marker-shadow.png';
 import DestinationCard from '../components/DestinationCard';
+import { loadDestinationsWithCache } from '../utils/offlineDestinations';
 import './Destinations.css';
 
-// Custom Marker to avoid Leaflet's default React strict mode crash
+// Bundled marker assets so map pins work offline (tiles may still need prior cache).
 const mapIcon = new L.Icon({
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconUrl: markerIconPng,
+    iconRetinaUrl: markerIcon2xPng,
+    shadowUrl: markerShadowPng,
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
@@ -43,6 +47,7 @@ const coordinatesMap = {
 const Destinations = () => {
     const [destinations, setDestinations] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [dataSource, setDataSource] = useState(null);
     const [activeFilter, setActiveFilter] = useState('All Places');
 
     const mapRef = useRef(null);
@@ -76,27 +81,19 @@ const Destinations = () => {
     ].map((d, i) => ({ ...d, _id: `fallback-${i}` }));
 
     useEffect(() => {
-        const rawUrl = import.meta.env.VITE_API_URL?.trim();
-        const isProduction = !window.location.hostname.includes('localhost');
-        const apiUrl = (rawUrl && (!rawUrl.includes('localhost') || !isProduction))
-            ? rawUrl
-            : (isProduction ? window.location.origin : 'http://localhost:5000');
-
-        fetch(`${apiUrl}/api/destinations`)
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.length > 0) {
-                    setDestinations(data);
-                } else {
-                    setDestinations(fallbackData);
-                }
-                setLoading(false);
-            })
-            .catch(err => {
-                console.error("Backend fetch failed, using full fallback:", err);
+        let cancelled = false;
+        loadDestinationsWithCache().then(({ data, source }) => {
+            if (cancelled) return;
+            if (data && data.length > 0) {
+                setDestinations(data);
+                setDataSource(source);
+            } else {
                 setDestinations(fallbackData);
-                setLoading(false);
-            });
+                setDataSource('fallback');
+            }
+            setLoading(false);
+        });
+        return () => { cancelled = true; };
     }, []);
 
 
@@ -193,6 +190,18 @@ const Destinations = () => {
             </div>
 
             <div className="content-column">
+                {dataSource === 'cache' && (
+                    <p style={{
+                        fontSize: '0.88rem',
+                        color: 'var(--text-light)',
+                        marginBottom: '1rem',
+                        padding: '0.65rem 1rem',
+                        background: 'rgba(15, 118, 110, 0.08)',
+                        borderRadius: '12px',
+                    }}>
+                        Showing places saved from your last visit online — updates when you reconnect.
+                    </p>
+                )}
                 <div className="filter-sidebar glass-card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
                     <div className="filter-dropdown-wrapper">
                         <select

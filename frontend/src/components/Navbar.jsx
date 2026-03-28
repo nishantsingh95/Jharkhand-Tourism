@@ -58,7 +58,9 @@ const Navbar = () => {
                     <li><NavLink to="/chat" onClick={() => setMobileMenuOpen(false)}>Chat</NavLink></li>
                     <li><NavLink to="/marketplace" onClick={() => setMobileMenuOpen(false)}>Marketplace</NavLink></li>
                     <li><NavLink to="/feedback" onClick={() => setMobileMenuOpen(false)}>Feedback</NavLink></li>
-                    <li><NavLink to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</NavLink></li>
+                    {user && user.role === 'admin' && (
+                        <li><NavLink to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</NavLink></li>
+                    )}
                 </ul>
                 <div className="nav-cta" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     {user ? (

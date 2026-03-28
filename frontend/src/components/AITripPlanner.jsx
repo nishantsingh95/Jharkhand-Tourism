@@ -270,8 +270,17 @@ const AITripPlanner = () => {
 
                         <div ref={printRef} className="pdf-container" style={{ background: 'white', padding: '3rem', borderRadius: '16px', border: '1px solid #eaeaea' }}>
                             <div className="pdf-header" style={{ marginBottom: '2rem' }}>
-                                <h2 style={{ color: 'var(--text-dark)', fontSize: '1.8rem', fontWeight: '800', marginBottom: '0.5rem' }}>Jharkhand Explorer Itinerary</h2>
-                                <p style={{ margin: 0, color: '#6b7280', fontSize: '0.95rem' }}>{days} Days | {budget} | {interest}</p>
+                                <h2 style={{ color: 'var(--text-dark)', fontSize: '1.8rem', fontWeight: '800', marginBottom: '0.8rem' }}>Jharkhand Explorer Itinerary</h2>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                                    <p style={{ margin: 0, color: '#6b7280', fontSize: '0.95rem', fontWeight: '500' }}>
+                                        {days} Days | {budget.split(' ')[0]} | {interest}
+                                    </p>
+                                    <div style={{ background: '#ecfdf5', padding: '0.6rem 1.2rem', borderRadius: '50px', border: '1px solid #10b981' }}>
+                                        <p style={{ margin: 0, color: '#047857', fontSize: '0.95rem', fontWeight: '800' }}>
+                                            Total Est. Expenses: {budget.includes('Budget') ? `₹${1000 * days} - ₹${2500 * days}` : budget.includes('Standard') ? `₹${2500 * days} - ₹${5000 * days}` : `₹${5000 * days}+`}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
                             <hr style={{ border: 'none', borderTop: '2px solid #222', marginBottom: '2rem' }} />

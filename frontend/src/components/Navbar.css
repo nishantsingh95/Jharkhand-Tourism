@@ -7,7 +7,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 1000;
+    z-index: 10000;
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     font-family: var(--font-family);
 }

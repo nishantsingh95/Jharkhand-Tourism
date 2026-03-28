@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import OfflineBanner from './components/OfflineBanner';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import Destinations from './pages/Destinations';
@@ -19,7 +20,8 @@ function App() {
         <Router>
             <div className="auth-container">
                 <Navbar />
-                <main>
+                <OfflineBanner />
+                <main style={{ flex: 1 }}>
                     <Routes>
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />

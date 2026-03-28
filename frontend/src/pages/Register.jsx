@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { resolveApiUrl } from '../utils/apiBase';
 import './Auth.css';
 
 const Register = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [role, setRole] = useState('user');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
@@ -14,12 +16,12 @@ const Register = () => {
         e.preventDefault();
         setError('');
 
-        const rawUrl = import.meta.env.VITE_API_URL?.trim();
-        // Fallback logic: If env var points to localhost but we are on a production site, ignore it and use origin.
-        const isProduction = !window.location.hostname.includes('localhost');
-        const apiUrl = (rawUrl && (!rawUrl.includes('localhost') || !isProduction))
-            ? rawUrl
-            : (isProduction ? window.location.origin : 'http://localhost:5000');
+        if (!navigator.onLine) {
+            setError('Internet is required to create an account.');
+            return;
+        }
+
+        const apiUrl = resolveApiUrl();
 
         if (!apiUrl) {
             setError('API URL not configured. Please set VITE_API_URL.');
@@ -31,7 +33,7 @@ const Register = () => {
             const res = await fetch(`${apiUrl}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password })
+                body: JSON.stringify({ name, email, password, role })
             });
             let data = {};
             try {
@@ -112,6 +114,18 @@ const Register = () => {
                                 {showPassword ? '👁️' : '👁️‍🗨️'}
                             </button>
                         </div>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                        <label>Register As</label>
+                        <select
+                            value={role}
+                            onChange={(e) => setRole(e.target.value)}
+                            style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', background: '#f8fafc', outline: 'none', color: '#334155' }}
+                        >
+                            <option value="user">Regular User</option>
+                            <option value="admin">Admin</option>
+                        </select>
                     </div>
 
                     <button type="submit" className="btn btn-primary btn-block auth-btn">

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { getSpeechRecognitionCtor, speakText, stopSpeaking } from '../utils/voiceWeb';
 import './ChatPage.css';
 
 const ChatPage = () => {
@@ -7,10 +8,16 @@ const ChatPage = () => {
 
     const [lang, setLang] = useState('en');
     const [messages, setMessages] = useState([
-        { text: defaultEn, sender: 'ai' }
+        { text: defaultEn, sender: 'ai', speakable: false }
     ]);
     const [input, setInput] = useState('');
+    const [isTyping, setIsTyping] = useState(false);
+    const [isListening, setIsListening] = useState(false);
+    const [voiceRepliesOn, setVoiceRepliesOn] = useState(true);
+    const [autoSendVoice, setAutoSendVoice] = useState(true);
     const messagesEndRef = useRef(null);
+    const messageCountRef = useRef(0);
+    const recognitionRef = useRef(null);
 
     const suggestions = [
         "Best time to visit", "Top waterfalls", "Wildlife sanctuaries", "Local cuisine"
@@ -29,47 +36,118 @@ const ChatPage = () => {
         window.scrollTo(0, 0);
     }, [messages]);
 
+    useEffect(() => {
+        if (!voiceRepliesOn) {
+            messageCountRef.current = messages.length;
+            return;
+        }
+        if (messages.length <= messageCountRef.current) {
+            messageCountRef.current = messages.length;
+            return;
+        }
+        const last = messages[messages.length - 1];
+        messageCountRef.current = messages.length;
+        if (last?.sender === 'ai' && last.speakable !== false) {
+            speakText(last.text, lang);
+        }
+    }, [messages, voiceRepliesOn, lang]);
+
+    useEffect(() => {
+        return () => {
+            stopSpeaking();
+            try {
+                recognitionRef.current?.abort();
+            } catch (_) { /* noop */ }
+        };
+    }, []);
+
     const handleLanguageToggle = (selectedLang) => {
         if (lang === selectedLang) return;
         setLang(selectedLang);
-        setMessages(prev => [...prev, { text: selectedLang === 'en' ? "Language switched to English." : "भाषा बदलकर हिंदी कर दी गई है।", sender: 'ai' }]);
+        setMessages(prev => [...prev, { text: selectedLang === 'en' ? "Language switched to English." : "भाषा बदलकर हिंदी कर दी गई है।", sender: 'ai', speakable: false }]);
     };
 
-    const handleSend = (userMsg = input) => {
-        if (!userMsg.trim()) return;
-        setMessages(prev => [...prev, { text: userMsg.trim(), sender: 'user' }]);
+    const handleSend = async (userMsg = input) => {
+        if (!userMsg.trim() || isTyping) return;
+        setMessages(prev => [...prev, { text: userMsg.trim(), sender: 'user', speakable: false }]);
         setInput('');
+        setIsTyping(true);
 
-        // Simulate AI response
-        setTimeout(() => {
-            let aiTextEn = "That sounds exciting! I can help you with that. Would you like me to suggest some popular destinations or a specific itinerary based on your interests?";
-            let aiTextHi = "यह रोमांचक लग रहा है! मैं इसमें आपकी मदद कर सकता हूं। क्या आप चाहेंगे कि मैं आपकी रुचियों के आधार पर कुछ लोकप्रिय गंतव्यों या एक विशिष्ट यात्रा कार्यक्रम का सुझाव दूं?";
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            setMessages(prev => [...prev, {
+                text: lang === 'en'
+                    ? "You're offline, so live AI chat needs the internet. You can still use Destinations, Itinerary, Marketplace, and Feedback with saved data."
+                    : "आप ऑफ़लाइन हैं, लाइव AI चैट के लिए इंटरनेट चाहिए। डेस्टिनेशन, इटिनररी, मार्केटप्लेस और फ़ीडबैक सेव डेटा के साथ इस्तेमाल कर सकते हैं।",
+                sender: 'ai',
+                speakable: true
+            }]);
+            setIsTyping(false);
+            return;
+        }
 
-            const lower = userMsg.toLowerCase();
+        const prompt = `You are a highly helpful and concise AI Travel Guide for Jharkhand Tourism.
+You help travelers get all the information they need about Jharkhand (India), including destinations, weather, culture, how to reach, foods, etc.
+The user is speaking to you in ${lang === 'en' ? 'English' : 'Hindi'}. 
+Answer warmly, naturally, and concisely. Keep it to a few simple sentences. Exclusively talk in ${lang === 'en' ? 'English' : 'Hindi'}. Do NOT use markdown.
+User says: "${userMsg.trim()}"`;
 
-            if (lower.includes('time to visit') || lower.includes('समय')) {
-                aiTextEn = "The best time to visit Jharkhand is between October and March when the weather is pleasant and comfortable for sightseeing!";
-                aiTextHi = "झारखंड घूमने का सबसे अच्छा समय अक्टूबर से मार्च के बीच है जब मौसम सुहावना और दर्शनीय स्थलों की यात्रा के लिए आरामदायक होता है!";
-            } else if (lower.includes('waterfall') || lower.includes('झरने')) {
-                aiTextEn = "Jharkhand is the land of waterfalls! You must visit Hundru Falls, Dassam Falls, Jonha Falls, and Lodh Falls.";
-                aiTextHi = "झारखंड झरनों की भूमि है! आपको हुंडरू जलप्रपात, दशम जलप्रपात, जोन्हा जलप्रपात और लोध जलप्रपात अवश्य देखना चाहिए।";
-            } else if (lower.includes('wildlife') || lower.includes('अभयारण्य')) {
-                aiTextEn = "For wildlife, Betla National Park and Dalma Wildlife Sanctuary are excellent choices to see elephants, tigers, and exotic birds.";
-                aiTextHi = "वन्यजीवों के लिए, हाथियों, बाघों और विदेशी पक्षियों को देखने के लिए बेतला राष्ट्रीय उद्यान और दलमा वन्यजीव अभयारण्य बेहतरीन विकल्प हैं।";
-            } else if (lower.includes('cuisine') || lower.includes('भोजन') || lower.includes('food')) {
-                aiTextEn = "You must try local delicacies like Litti Chokha, Chilka Roti, Dhuska, and Handia. They are an essential part of the Jharkhand experience!";
-                aiTextHi = "आपको लिट्टी चोखा, छिलका रोटी, धुस्का और हंडिया जैसे स्थानीय व्यंजनों का स्वाद अवश्य लेना चाहिए। वे झारखंड अनुभव का एक अनिवार्य हिस्सा हैं!";
-            } else if (lower.includes('itinerary') || lower.includes('plan')) {
-                aiTextEn = "To build a custom itinerary, head over to our 'Itinerary' page! You can select your days, budget, and interests.";
-                aiTextHi = "एक कस्टम यात्रा कार्यक्रम बनाने के लिए, हमारे 'Itinerary' पेज पर जाएं! आप अपने दिन, बजट और रुचियों का चयन कर सकते हैं।";
-            } else if (lower.includes('hotel') || lower.includes('stay')) {
-                aiTextEn = "You can book premium hotels and authentic homestays directly from our 'Marketplace' page.";
-                aiTextHi = "आप हमारे 'Marketplace' पेज से प्रीमियम होटल और प्रामाणिक होमस्टे सीधे बुक कर सकते हैं।";
+        try {
+            if (!window.puter) {
+                throw new Error("Puter.js not loaded.");
             }
+            const resp = await window.puter.ai.chat(prompt);
+            const aiReply = resp?.message?.content || (lang === 'en' ? "I'm having trouble thinking right now." : "मुझे सोचने में परेशानी हो रही है।");
+            setMessages(prev => [...prev, { text: aiReply.replace(/\*\*/g, '').replace(/\*/g, ''), sender: 'ai', speakable: true }]);
+        } catch (error) {
+            console.error("AI Error:", error);
+            setMessages(prev => [...prev, { text: lang === 'en' ? "Oops! The AI service is not available right now. Please check your connection." : "उफ़! AI सेवा अभी उपलब्ध नहीं है। कृपया अपना कनेक्शन जांचें।", sender: 'ai', speakable: true }]);
+        } finally {
+            setIsTyping(false);
+        }
+    };
 
-            const finalResponse = lang === 'en' ? aiTextEn : aiTextHi;
-            setMessages(prev => [...prev, { text: finalResponse, sender: 'ai' }]);
-        }, 1000);
+    const handleVoiceInput = () => {
+        stopSpeaking();
+        const SpeechRecognition = getSpeechRecognitionCtor();
+        if (!SpeechRecognition) {
+            alert(lang === 'en' ? "Your browser does not support voice recognition. Try Chrome or Edge." : "आपका ब्राउज़र वॉयस रिकग्निशन का समर्थन नहीं करता। क्रोम या एज आज़माएं।");
+            return;
+        }
+
+        try {
+            recognitionRef.current?.abort();
+        } catch (_) { /* noop */ }
+
+        const recognition = new SpeechRecognition();
+        recognitionRef.current = recognition;
+        recognition.lang = lang === 'en' ? 'en-US' : 'hi-IN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            setIsListening(true);
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = (event.results[0][0].transcript || '').trim();
+            if (!transcript) return;
+            if (autoSendVoice) {
+                handleSend(transcript);
+            } else {
+                setInput(transcript);
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error("Speech recognition error", event.error);
+            setIsListening(false);
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+
+        recognition.start();
     };
 
     return (
@@ -95,31 +173,109 @@ const ChatPage = () => {
                     <p style={{ color: 'var(--text-light)', fontSize: '0.8rem', margin: 0 }}>
                         {lang === 'en' ? "Your personal AI-powered travel assistant for Jharkhand." : "झारखंड के लिए आपका व्यक्तिगत AI यात्रा सहायक।"}
                     </p>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            justifyContent: 'center',
+                            gap: '1rem',
+                            marginTop: '0.75rem',
+                            fontSize: '0.78rem',
+                            color: 'var(--text-light)'
+                        }}
+                    >
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', userSelect: 'none' }}>
+                            <input
+                                type="checkbox"
+                                checked={voiceRepliesOn}
+                                onChange={(e) => {
+                                    setVoiceRepliesOn(e.target.checked);
+                                    if (!e.target.checked) stopSpeaking();
+                                }}
+                            />
+                            {lang === 'en' ? 'Read replies aloud' : 'जवाब ज़ोर से पढ़ें'}
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', userSelect: 'none' }}>
+                            <input
+                                type="checkbox"
+                                checked={autoSendVoice}
+                                onChange={(e) => setAutoSendVoice(e.target.checked)}
+                            />
+                            {lang === 'en' ? 'Send after voice' : 'बोलने के बाद भेजें'}
+                        </label>
+                    </div>
                 </div>
 
                 <div className="chat-body scrollbar-hide">
                     {messages.map((msg, idx) => (
-                        <div key={idx} className={`chat-message ${msg.sender === 'user' ? 'user-message' : 'ai-message'}`}>
-                            {msg.text}
+                        <div key={idx} className={`chat-message ${msg.sender === 'user' ? 'user-message' : 'ai-message'}`} style={msg.sender === 'ai' ? { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' } : undefined}>
+                            <span style={{ flex: 1 }}>{msg.text}</span>
+                            {msg.sender === 'ai' && msg.speakable !== false && (
+                                <button
+                                    type="button"
+                                    title={lang === 'en' ? 'Play aloud — Free (device voice)' : 'सुनें'}
+                                    onClick={() => speakText(msg.text, lang)}
+                                    style={{
+                                        flexShrink: 0,
+                                        background: 'rgba(255,255,255,0.35)',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        padding: '4px 8px',
+                                        cursor: 'pointer',
+                                        fontSize: '0.9rem',
+                                        lineHeight: 1
+                                    }}
+                                    aria-label={lang === 'en' ? 'Read message aloud' : 'मैसेज सुनें'}
+                                >
+                                    🔊
+                                </button>
+                            )}
                         </div>
                     ))}
+                    {isTyping && (
+                        <div className="chat-message ai-message" style={{ opacity: 0.7, fontStyle: 'italic' }}>
+                            {lang === 'en' ? "Typing..." : "टाइप कर रहा है..."}
+                        </div>
+                    )}
                     <div ref={messagesEndRef} />
                 </div>
 
                 <div className="chat-footer" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 'auto' }}>
 
                     {/* Input Field Row */}
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                        <button 
+                            onClick={handleVoiceInput} 
+                            disabled={isTyping || isListening}
+                            style={{ 
+                                background: isListening ? '#ef4444' : '#f1f5f9', 
+                                color: isListening ? 'white' : '#475569', 
+                                border: 'none', 
+                                width: '50px', 
+                                height: '50px', 
+                                borderRadius: '50%', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                cursor: 'pointer', 
+                                transition: 'all 0.3s ease',
+                                boxShadow: isListening ? '0 0 10px rgba(239, 68, 68, 0.4)' : 'none'
+                            }}>
+                            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                            </svg>
+                        </button>
                         <input
                             type="text"
-                            placeholder={lang === 'en' ? "Ask me anything..." : "मुझसे कुछ भी पूछें..."}
+                            placeholder={isListening ? (lang === 'en' ? "Listening..." : "सुन रहा हूँ...") : (lang === 'en' ? "Ask me anything..." : "मुझसे कुछ भी पूछें...")}
                             className="chat-input"
                             value={input}
                             onChange={e => setInput(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleSend(input)}
-                            style={{ flex: 1 }}
+                            style={{ flex: 1, padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+                            disabled={isListening}
                         />
-                        <button onClick={() => handleSend(input)} className="btn btn-primary" style={{ padding: '0 2rem', borderRadius: '12px', fontSize: '1.1rem' }}>
+                        <button onClick={() => handleSend(input)} disabled={isTyping || isListening} className="btn btn-primary" style={{ padding: '0 1.5rem', borderRadius: '12px', fontSize: '1.1rem', height: '50px' }}>
                             {lang === 'en' ? 'Send' : 'भेजें'}
                         </button>
                     </div>

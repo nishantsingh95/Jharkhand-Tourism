@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { resolveApiUrl } from '../utils/apiBase';
 import './Auth.css';
 
 const Login = () => {
@@ -15,12 +16,12 @@ const Login = () => {
         e.preventDefault();
         setError('');
 
-        const rawUrl = import.meta.env.VITE_API_URL?.trim();
-        // Fallback logic: If env var points to localhost but we are on a production site, ignore it and use origin.
-        const isProduction = !window.location.hostname.includes('localhost');
-        const apiUrl = (rawUrl && (!rawUrl.includes('localhost') || !isProduction))
-            ? rawUrl
-            : (isProduction ? window.location.origin : 'https://jharkhand-tourism-hsfs.onrender.com');
+        if (!navigator.onLine) {
+            setError('Internet is required to sign in. After you log in once while online, you can open the app offline to browse saved places.');
+            return;
+        }
+
+        const apiUrl = resolveApiUrl();
 
         if (!apiUrl) {
             setError('API URL not configured. Please set VITE_API_URL.');

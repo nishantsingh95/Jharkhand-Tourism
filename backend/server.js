@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import Destination from './models/Destination.js';
 import User from './models/User.js';
 import { destinations } from './data/destinations.js';
@@ -13,10 +14,20 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// JWT secret: use env in production; fallback only for dev so auth works when env is missing (e.g. other device / different env)
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_fallback_secret_change_in_production';
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+    console.warn('Warning: JWT_SECRET not set in production. Set JWT_SECRET in your environment.');
+}
+
 // Transporter Setup
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // For local testing, we'll connect to memory or a local MongoDB fallback
@@ -95,74 +106,110 @@ app.get('/api/destinations/:id', async (req, res) => {
     }
 });
 
+// In-memory fallback for testing without DB
+const fallbackUsers = [];
+
 // Auth Routes
 app.post('/api/auth/register', async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, role = 'user' } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
 
         let existingUser = null;
         if (mongoose.connection.readyState === 1) {
             try { existingUser = await User.findOne({ email }).maxTimeMS(3000); } catch (e) { console.warn("DB Error", e.message); }
+        } else {
+            existingUser = fallbackUsers.find(u => u.email === email);
         }
 
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        let user = { _id: 'fallback_' + Date.now(), name, email, password };
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        let user = { _id: 'fallback_' + Date.now(), name, email, password: hashedPassword, role };
 
         if (mongoose.connection.readyState === 1) {
             try {
-                const dbUser = new User({ name, email, password });
+                const dbUser = new User({ name, email, password: hashedPassword, role });
                 await dbUser.save();
                 user = dbUser;
-            } catch (e) { console.warn("DB Save Error", e.message); }
+            } catch (e) { 
+                console.warn("DB Save Error, using fallback", e.message); 
+                fallbackUsers.push(user);
+            }
+        } else {
+            fallbackUsers.push(user);
         }
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '5d' });
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '5d' });
 
         res.status(201).json({
             _id: user._id,
             name: user.name,
             email: user.email,
+            role: user.role || 'user',
             token
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Register error:', error);
+        res.status(500).json({ message: error.message || 'Registration failed' });
     }
 });
 
 app.post('/api/auth/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password } = req.body || {};
+
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
+
         let user = null;
 
         if (mongoose.connection.readyState === 1) {
             try { user = await User.findOne({ email }).maxTimeMS(3000); } catch (e) { console.warn("DB Error", e.message); }
         }
-
-        // Graceful DB Fallback for Demo
+        
         if (!user) {
-            user = { _id: 'fallback_user_123', name: email.split('@')[0], email, password };
+            user = fallbackUsers.find(u => u.email === email);
         }
 
-        if (user.password !== password) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid credentials. Please register first.' });
         }
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '5d' });
+        let isMatch = false;
+        if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+            isMatch = await bcrypt.compare(password, user.password);
+        } else {
+            isMatch = (user.password === password);
+        }
+
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Invalid credentials. Please register first.' });
+        }
+
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '5d' });
 
         res.json({
             _id: user._id,
             name: user.name,
             email: user.email,
+            role: user.role || 'user',
             token
         });
     } catch (error) {
-        res.status(500).json({ message: 'Server error: ' + error.message });
+        console.error('Login error:', error);
+        res.status(500).json({ message: error.message || 'Login failed' });
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT} (accessible on all network interfaces)`);
 });

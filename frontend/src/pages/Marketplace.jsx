@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { productsData } from '../data/productsData';
 import './Marketplace.css';
 
@@ -14,29 +14,82 @@ const Marketplace = () => {
     const [upiStatus, setUpiStatus] = useState('pending'); // pending, processing, success
     const [receiptData, setReceiptData] = useState(null);
     const [toast, setToast] = useState({ show: false, message: '' });
+    const [user, setUser] = useState(null);
+    const [customItems, setCustomItems] = useState([]);
+    const [removedItems, setRemovedItems] = useState([]);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [minRating, setMinRating] = useState('Any Rating');
+    const [newItem, setNewItem] = useState({
+        name: '', desc: '', price: '', category: 'Handcraft', subCategory: '', source: '', rating: '4.8', location: '', guideName: '', experience: '', date: '', guidePhone: ''
+    });
 
-    const filteredItems = productsData.filter(item => {
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) setUser(JSON.parse(storedUser));
+        
+        const stored = localStorage.getItem('customMarketplaceItems');
+        if (stored) {
+            let parsed = JSON.parse(stored);
+            let modified = false;
+            parsed = parsed.map(item => {
+                if (item.rating === '5.0' || item.rating === 5) {
+                    modified = true;
+                    // Hash to a pseudo-random value between 4.1 and 4.9
+                    const hash = item.name.length + (item.price ? parseInt(item.price) : 0) * 7;
+                    const val = 4.1 + (hash % 9) / 10;
+                    return { ...item, rating: val.toFixed(1) };
+                }
+                return item;
+            });
+            if (modified) {
+                localStorage.setItem('customMarketplaceItems', JSON.stringify(parsed));
+            }
+            setCustomItems(parsed);
+        }
+        
+        const storedRemoved = localStorage.getItem('removedMarketplaceItems');
+        if (storedRemoved) setRemovedItems(JSON.parse(storedRemoved));
+    }, []);
+
+    const allItems = [...productsData, ...customItems].filter(item => !removedItems.includes(item.id));
+
+    const getCategoryForTab = (tab) => {
+        switch (tab) {
+            case 'handcraft': return 'Handcraft';
+            case 'guides': return 'Guide';
+            case 'homestays': return 'Homestay';
+            case 'vehicles': return 'Vehicle';
+            case 'food': return 'Food';
+            case 'events': return 'Event';
+            default: return '';
+        }
+    };
+
+    const currentCategory = getCategoryForTab(activeTab);
+    const currentCategoryItems = allItems.filter(item => item.category === currentCategory);
+    
+    // Words to exclude from the filter dropdown
+    const excludedFilters = ['ghugni', 'til barfi', 'anarsa', 'chugni'];
+    
+    const uniqueSubCategories = [...new Set(currentCategoryItems.map(item => item.subCategory).filter(Boolean))]
+        .filter(sub => !excludedFilters.includes(sub.toLowerCase()));
+
+    const filteredItems = allItems.filter(item => {
         const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.desc.toLowerCase().includes(searchQuery.toLowerCase());
 
         const matchesSubCategory = subCategory === 'All' || item.subCategory === subCategory;
 
-        if (activeTab === 'handcraft') {
-            return item.category === 'Handcraft' && matchesSearch && matchesSubCategory;
-        } else if (activeTab === 'guides') {
-            return item.category === 'Guide' && matchesSearch && matchesSubCategory;
-        } else if (activeTab === 'homestays') {
-            return item.category === 'Homestay' && matchesSearch && matchesSubCategory;
-        } else if (activeTab === 'vehicles') {
-            return item.category === 'Vehicle' && matchesSearch && matchesSubCategory;
-        }
+        let matchesRating = true;
+        if (minRating === '4.0 & Above') matchesRating = parseFloat(item.rating) >= 4.0;
+        if (minRating === '4.5 & Above') matchesRating = parseFloat(item.rating) >= 4.5;
 
-        // For other tabs we won't filter yet as no data is added
-        return false;
+        return item.category === currentCategory && matchesSearch && matchesSubCategory && matchesRating;
     });
 
     useEffect(() => {
         setSubCategory('All');
+        setMinRating('Any Rating');
     }, [activeTab]);
 
     useEffect(() => window.scrollTo(0, 0), []);
@@ -53,6 +106,42 @@ const Marketplace = () => {
         // Show Toast Notification
         setToast({ show: true, message: `${product.name} added to cart!` });
         setTimeout(() => setToast({ show: false, message: '' }), 3000);
+    };
+
+    const handleRemoveItem = (id) => {
+        const isCustom = customItems.some(item => item.id === id);
+        if (isCustom) {
+            const updatedCustomItems = customItems.filter(item => item.id !== id);
+            localStorage.setItem('customMarketplaceItems', JSON.stringify(updatedCustomItems));
+            setCustomItems(updatedCustomItems);
+        } else {
+            const updatedRemovedItems = [...removedItems, id];
+            localStorage.setItem('removedMarketplaceItems', JSON.stringify(updatedRemovedItems));
+            setRemovedItems(updatedRemovedItems);
+        }
+        
+        // Ensure it is removed from cart if present
+        setCart(prev => prev.filter(item => item.id !== id));
+        
+        setToast({ show: true, message: 'Item successfully removed!' });
+        setTimeout(() => setToast({ show: false, message: '' }), 3000);
+    };
+
+    const handleAddItem = (e) => {
+        e.preventDefault();
+        const finalItem = { ...newItem };
+        if (finalItem.category === 'Event') {
+            finalItem.rating = '';
+            finalItem.subCategory = '';
+        }
+        const itemObj = { ...finalItem, id: Date.now() };
+        const updatedCustomItems = [itemObj, ...customItems];
+        localStorage.setItem('customMarketplaceItems', JSON.stringify(updatedCustomItems));
+        setCustomItems(updatedCustomItems);
+        setIsAddModalOpen(false);
+        setToast({ show: true, message: `Successfully added ${newItem.name}!` });
+        setTimeout(() => setToast({ show: false, message: '' }), 3000);
+        setNewItem({ name: '', desc: '', price: '', category: 'Handcraft', subCategory: '', source: '', rating: '4.8', location: '', guideName: '', experience: '', date: '', guidePhone: '' });
     };
 
     const removeFromCart = (id) => {
@@ -161,6 +250,7 @@ const Marketplace = () => {
     };
 
     const needsAadhar = cart.some(item => item.category === 'Homestay' || item.category === 'Vehicle');
+    const needsDelivery = cart.some(item => item.category === 'Handcraft' || item.category === 'Food');
 
     return (
         <div className="marketplace-page" style={{ backgroundColor: '#f8fafc', minHeight: '100vh', paddingTop: '7rem', paddingBottom: '5rem' }}>
@@ -221,6 +311,28 @@ const Marketplace = () => {
                             }}>
                             <span style={{ fontSize: '1.1rem' }}>🚙</span> Vehicles
                         </button>
+
+                        <button
+                            onClick={() => setActiveTab('food')}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '8px', padding: '0.7rem 1.4rem', borderRadius: '50px',
+                                border: 'none', fontWeight: '600', fontSize: '0.95rem', cursor: 'pointer', transition: 'all 0.2s ease',
+                                background: activeTab === 'food' ? '#2e8157' : '#f8fafc',
+                                color: activeTab === 'food' ? 'white' : '#4a5568'
+                            }}>
+                            <span style={{ fontSize: '1.1rem' }}>🍛</span> Food
+                        </button>
+
+                        <button
+                            onClick={() => setActiveTab('events')}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '8px', padding: '0.7rem 1.4rem', borderRadius: '50px',
+                                border: 'none', fontWeight: '600', fontSize: '0.95rem', cursor: 'pointer', transition: 'all 0.2s ease',
+                                background: activeTab === 'events' ? '#2e8157' : '#f8fafc',
+                                color: activeTab === 'events' ? 'white' : '#4a5568'
+                            }}>
+                            <span style={{ fontSize: '1.1rem' }}>🎉</span> Events
+                        </button>
                     </div>
                 </div>
 
@@ -245,50 +357,18 @@ const Marketplace = () => {
                             onChange={(e) => setSubCategory(e.target.value)}
                             style={{ border: 'none', background: 'transparent', outline: 'none', color: '#4a5568', fontSize: '0.95rem', cursor: 'pointer', paddingRight: '1rem' }}>
                             <option value="All">All {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</option>
-                            {activeTab === 'handcraft' && (
-                                <>
-                                    <option value="Bamboo">Bamboo</option>
-                                    <option value="Stone Carving">Stone Carving</option>
-                                    <option value="Sohrai Painting">Sohrai Painting</option>
-                                    <option value="Handloom">Handloom</option>
-                                    <option value="Tribal Art">Tribal Art</option>
-                                </>
-                            )}
-                            {activeTab === 'guides' && (
-                                <>
-                                    <option value="City Tour">City Tour</option>
-                                    <option value="Wildlife Safari">Wildlife Safari</option>
-                                    <option value="Trekking">Trekking</option>
-                                    <option value="Spiritual">Spiritual</option>
-                                    <option value="Cultural">Cultural</option>
-                                </>
-                            )}
-                            {activeTab === 'homestays' && (
-                                <>
-                                    <option value="Hotel">Hotel</option>
-                                    <option value="Resort">Resort</option>
-                                    <option value="Guest House">Guest House</option>
-                                    <option value="Heritage">Heritage</option>
-                                    <option value="Eco-Stay">Eco-Stay</option>
-                                </>
-                            )}
-                            {activeTab === 'vehicles' && (
-                                <>
-                                    <option value="Scooter">Scooter</option>
-                                    <option value="Motorcycle">Motorcycle</option>
-                                    <option value="Car">Car / Sedan</option>
-                                    <option value="SUV">SUV</option>
-                                    <option value="Van">Van / Bus</option>
-                                    <option value="Luxury">Luxury</option>
-                                    <option value="Adventure">Adventure</option>
-                                </>
-                            )}
+                            {uniqueSubCategories.map(sub => (
+                                <option key={sub} value={sub}>{sub}</option>
+                            ))}
                         </select>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', cursor: 'pointer' }}>
                         <span style={{ color: '#4a5568' }}>⭐</span>
-                        <select style={{ border: 'none', background: 'transparent', outline: 'none', color: '#4a5568', fontSize: '0.95rem', cursor: 'pointer', paddingRight: '1rem' }}>
+                        <select
+                            value={minRating}
+                            onChange={(e) => setMinRating(e.target.value)}
+                            style={{ border: 'none', background: 'transparent', outline: 'none', color: '#4a5568', fontSize: '0.95rem', cursor: 'pointer', paddingRight: '1rem' }}>
                             <option>Any Rating</option>
                             <option>4.0 & Above</option>
                             <option>4.5 & Above</option>
@@ -305,6 +385,13 @@ const Marketplace = () => {
                             </span>
                         )}
                     </button>
+                    {user && user.role === 'admin' && (
+                        <button
+                            onClick={() => setIsAddModalOpen(true)}
+                            style={{ background: '#2e8157', color: 'white', border: 'none', borderRadius: '8px', padding: '0.7rem 1.5rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: 'background 0.2s', marginLeft: '0.5rem' }}>
+                            ➕ Add Item
+                        </button>
+                    )}
                 </div>
                 {/* Search & Filter Box */}
                 {/* ... (Keep the search bar if useful, or remove if they want it gone too? Previous turn removed it). */}
@@ -328,6 +415,11 @@ const Marketplace = () => {
                                             {item.subCategory}
                                         </div>
                                     )}
+                                    {item.category === 'Event' && (
+                                        <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'white', border: '1px solid #e2e8f0', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', color: '#2e8157', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                                            🗓️ Upcoming
+                                        </div>
+                                    )}
                                     {item.category === 'Guide' && item.subCategory && (
                                         <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(59, 130, 246, 0.9)', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', color: 'white' }}>
                                             {item.subCategory}
@@ -343,11 +435,28 @@ const Marketplace = () => {
                                             {item.subCategory}
                                         </div>
                                     )}
+                                    {item.category === 'Food' && item.subCategory && (
+                                        <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(239, 68, 68, 0.9)', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', color: 'white' }}>
+                                            {item.subCategory}
+                                        </div>
+                                    )}
+                                    {item.category === 'Event' && item.subCategory && (
+                                        <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(234, 179, 8, 0.9)', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', color: 'white' }}>
+                                            {item.subCategory}
+                                        </div>
+                                    )}
                                 </div>
                                 <div style={{ padding: '1.5rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                                         <h3 style={{ margin: '0', fontSize: '1.25rem', color: '#1e293b' }}>{item.name}</h3>
-                                        <span style={{ background: '#fef3c7', color: '#d97706', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', height: 'fit-content' }}>★ {item.rating}</span>
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            {item.rating && (
+                                                <span style={{ background: '#fef3c7', color: '#d97706', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', height: 'fit-content' }}>★ {item.rating}</span>
+                                            )}
+                                            {user && user.role === 'admin' && (
+                                                <button onClick={() => handleRemoveItem(item.id)} style={{ background: '#fee2e2', color: '#ef4444', border: '1px solid #fca5a5', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Remove Item">🗑️</button>
+                                            )}
+                                        </div>
                                     </div>
                                     {item.category === 'Guide' && item.guideName && (
                                         <p style={{ margin: '0 0 0.5rem 0', color: '#3b82f6', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -355,22 +464,31 @@ const Marketplace = () => {
                                             {item.experience && <span style={{ color: '#10b981', fontSize: '0.9rem', marginLeft: '10px' }}>⭐ {item.experience} Exp.</span>}
                                         </p>
                                     )}
-                                    {(item.category === 'Homestay' || item.category === 'Vehicle') && item.location && (
+                                    {(item.category === 'Homestay' || item.category === 'Vehicle' || item.category === 'Event') && item.location && (
                                         <p style={{ margin: '0 0 0.5rem 0', color: '#ef4444', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem' }}>
                                             📍 {item.location}
                                         </p>
                                     )}
+                                    {item.category === 'Event' && item.date && (
+                                        <p style={{ margin: '0 0 0.5rem 0', color: '#3b82f6', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem' }}>
+                                            📅 {item.date}
+                                        </p>
+                                    )}
                                     <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '1rem', minHeight: '40px' }}>{item.desc}</p>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontSize: '1.25rem', fontWeight: '800', color: '#2e8157' }}>
-                                            ₹{item.price}
-                                            {item.category === 'Guide' || item.category === 'Vehicle' ? '/day' : item.category === 'Homestay' ? '/night' : ''}
-                                        </span>
+                                        {item.price && parseFloat(item.price) > 0 ? (
+                                            <span style={{ fontSize: '1.25rem', fontWeight: '800', color: '#2e8157' }}>
+                                                ₹{item.price}
+                                                {item.category === 'Guide' || item.category === 'Vehicle' ? '/day' : item.category === 'Homestay' ? '/night' : item.category === 'Event' ? '/ticket' : ''}
+                                            </span>
+                                        ) : (
+                                            <span style={{ fontSize: '1.25rem', fontWeight: '800', color: '#2e8157' }}>{item.category === 'Event' ? 'Free Entry' : 'Free'}</span>
+                                        )}
                                         <button
                                             onClick={() => addToCart(item)}
                                             style={{ background: '#f97316', color: 'white', border: 'none', padding: '0.5rem 1.2rem', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'background 0.2s' }}
                                             className="add-to-cart-btn">
-                                            {item.category === 'Guide' ? 'Book Guide' : item.category === 'Homestay' ? 'Book Stay' : item.category === 'Vehicle' ? 'Rent Vehicle' : 'Add to Cart'}
+                                            {item.category === 'Guide' ? 'Book Guide' : item.category === 'Homestay' ? 'Book Stay' : item.category === 'Vehicle' ? 'Rent Vehicle' : item.category === 'Event' ? 'Book Ticket' : 'Add to Cart'}
                                         </button>
                                     </div>
                                 </div>
@@ -427,9 +545,16 @@ const Marketplace = () => {
                                                 <tbody>
                                                     {receiptData.items.map(item => (
                                                         <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                            <td style={{ padding: '0.6rem 0' }}>{item.name}</td>
+                                                            <td style={{ padding: '0.6rem 0' }}>
+                                                                <div>{item.name}</div>
+                                                                {item.category === 'Guide' && (
+                                                                    <div style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '2px' }}>
+                                                                        Guide Ph: {item.guidePhone || `+91 9${item.id.toString().replace(/\D/g, '').padStart(3, '0')} 55210`}
+                                                                    </div>
+                                                                )}
+                                                            </td>
                                                             <td style={{ padding: '0.6rem 0', textAlign: 'center' }}>{item.quantity}</td>
-                                                            <td style={{ padding: '0.6rem 0', textAlign: 'right' }}>₹{item.price * item.quantity}</td>
+                                                            <td style={{ padding: '0.6rem 0', textAlign: 'right' }}>{item.price && parseFloat(item.price) > 0 ? `₹${item.price * item.quantity}` : 'Free'}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -457,7 +582,7 @@ const Marketplace = () => {
                                                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                                                         <div>
                                                             <h4 style={{ margin: '0', fontSize: '1rem', color: '#1e293b' }}>{item.name}</h4>
-                                                            <p style={{ margin: '0', color: '#f97316', fontWeight: 'bold' }}>₹{item.price}</p>
+                                                            <p style={{ margin: '0', color: '#f97316', fontWeight: 'bold' }}>{item.price && parseFloat(item.price) > 0 ? `₹${item.price}` : 'Free'}</p>
                                                         </div>
                                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                             <div style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
@@ -493,8 +618,12 @@ const Marketplace = () => {
                                             <input type="tel" placeholder="Phone" required value={checkoutDetails.phone} onChange={e => setCheckoutDetails({ ...checkoutDetails, phone: e.target.value })} style={{ flex: 1, padding: '0.55rem 0.7rem', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }} />
                                         </div>
                                         <input type="email" placeholder="Email Address" required value={checkoutDetails.email} onChange={e => setCheckoutDetails({ ...checkoutDetails, email: e.target.value })} style={{ padding: '0.55rem 0.7rem', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }} />
-                                        <input type="text" placeholder="Aadhaar Card Number (12 digits)" required maxLength={12} pattern="\d{12}" title="Enter valid 12-digit Aadhaar number" value={checkoutDetails.aadhar} onChange={e => setCheckoutDetails({ ...checkoutDetails, aadhar: e.target.value.replace(/\D/g, '') })} style={{ padding: '0.55rem 0.7rem', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '0.85rem', letterSpacing: '0.1em' }} />
-                                        <textarea placeholder="Delivery Address" required rows="2" value={checkoutDetails.address} onChange={e => setCheckoutDetails({ ...checkoutDetails, address: e.target.value })} style={{ padding: '0.55rem 0.7rem', borderRadius: '7px', border: '1px solid #cbd5e1', resize: 'none', fontSize: '0.85rem' }} />
+                                        {needsAadhar && (
+                                            <input type="text" placeholder="Aadhaar Card Number (12 digits)" required maxLength={12} pattern="\d{12}" title="Enter valid 12-digit Aadhaar number" value={checkoutDetails.aadhar} onChange={e => setCheckoutDetails({ ...checkoutDetails, aadhar: e.target.value.replace(/\D/g, '') })} style={{ padding: '0.55rem 0.7rem', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '0.85rem', letterSpacing: '0.1em' }} />
+                                        )}
+                                        {needsDelivery && (
+                                            <textarea placeholder="Delivery Address" required rows="2" value={checkoutDetails.address} onChange={e => setCheckoutDetails({ ...checkoutDetails, address: e.target.value })} style={{ padding: '0.55rem 0.7rem', borderRadius: '7px', border: '1px solid #cbd5e1', resize: 'none', fontSize: '0.85rem' }} />
+                                        )}
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                                             <label onClick={() => setCheckoutDetails({ ...checkoutDetails, paymentMethod: 'upi' })} style={{ flex: 1, padding: '0.5rem', border: `2px solid ${checkoutDetails.paymentMethod === 'upi' ? '#2e8157' : '#e2e8f0'}`, borderRadius: '7px', textAlign: 'center', cursor: 'pointer', background: checkoutDetails.paymentMethod === 'upi' ? '#f0fdf4' : 'white', fontSize: '0.85rem', fontWeight: '600' }}>UPI</label>
                                             <label onClick={() => setCheckoutDetails({ ...checkoutDetails, paymentMethod: 'cash' })} style={{ flex: 1, padding: '0.5rem', border: `2px solid ${checkoutDetails.paymentMethod === 'cash' ? '#2e8157' : '#e2e8f0'}`, borderRadius: '7px', textAlign: 'center', cursor: 'pointer', background: checkoutDetails.paymentMethod === 'cash' ? '#f0fdf4' : 'white', fontSize: '0.85rem', fontWeight: '600' }}>Cash</label>
@@ -578,6 +707,96 @@ const Marketplace = () => {
                         animation: 'slideDownFade 0.3s ease-out'
                     }}>
                         ✅ {toast.message}
+                    </div>
+                )}
+
+                {/* Add Item Modal */}
+                {isAddModalOpen && (
+                    <div className="cart-modal-overlay no-print" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)', zIndex: 1200, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
+                        <div className="cart-modal" style={{ width: '100%', maxWidth: '500px', backgroundColor: '#fff', borderRadius: '24px', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px rgba(0,0,0,0.3)', overflow: 'hidden', animation: 'fadeScaleIn 0.3s forwards' }}>
+                            <div style={{ background: '#f8fafc', padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0' }}>
+                                <h2 style={{ margin: 0, fontSize: '1.2rem', color: '#1a1a1a' }}>➕ Add New Item</h2>
+                                <button onClick={() => setIsAddModalOpen(false)} style={{ background: 'white', border: '1px solid #e2e8f0', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer' }}>✕</button>
+                            </div>
+                            <div style={{ padding: '1.5rem', overflowY: 'auto', maxHeight: '70vh' }}>
+                                <form onSubmit={handleAddItem} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>Name</label>
+                                        <input required value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '1rem' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>Category</label>
+                                            <select required value={newItem.category} onChange={e => setNewItem({...newItem, category: e.target.value})} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                                                <option value="Handcraft">Handcraft</option>
+                                                <option value="Guide">Guide</option>
+                                                <option value="Homestay">Homestay</option>
+                                                <option value="Vehicle">Vehicle</option>
+                                                <option value="Food">Food</option>
+                                                <option value="Event">Event</option>
+                                            </select>
+                                        </div>
+                                        {newItem.category !== 'Event' && (
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>SubCategory / Type</label>
+                                                <input required value={newItem.subCategory} onChange={e => setNewItem({...newItem, subCategory: e.target.value})} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '1rem' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>Price (₹)</label>
+                                            <input type="number" required value={newItem.price} onChange={e => setNewItem({...newItem, price: e.target.value})} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                                        </div>
+                                        {newItem.category !== 'Event' && (
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>Rating (ex: 4.8)</label>
+                                                <input type="number" step="0.1" min="1" max="5" required value={newItem.rating} onChange={e => setNewItem({...newItem, rating: e.target.value})} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>Image URL</label>
+                                        <input required value={newItem.source} onChange={e => setNewItem({...newItem, source: e.target.value})} placeholder="https://..." style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>Description</label>
+                                        <textarea required rows="2" value={newItem.desc} onChange={e => setNewItem({...newItem, desc: e.target.value})} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'none' }}></textarea>
+                                    </div>
+                                    {(newItem.category === 'Homestay' || newItem.category === 'Vehicle' || newItem.category === 'Event') && (
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>Location</label>
+                                            <input value={newItem.location} onChange={e => setNewItem({...newItem, location: e.target.value})} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                                        </div>
+                                    )}
+                                    {newItem.category === 'Event' && (
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>Event Date(s) (e.g. 23rd-24th April)</label>
+                                            <input value={newItem.date} onChange={e => setNewItem({...newItem, date: e.target.value})} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                                        </div>
+                                    )}
+                                    {newItem.category === 'Guide' && (
+                                        <>
+                                            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>Guide Name</label>
+                                                    <input value={newItem.guideName} onChange={e => setNewItem({...newItem, guideName: e.target.value})} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>Experience (e.g. 5 yrs)</label>
+                                                    <input value={newItem.experience} onChange={e => setNewItem({...newItem, experience: e.target.value})} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px', fontWeight: 'bold' }}>Guide Phone Number</label>
+                                                <input value={newItem.guidePhone} onChange={e => setNewItem({...newItem, guidePhone: e.target.value})} placeholder="+91 XXXXXXXXXX" style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                                            </div>
+                                        </>
+                                    )}
+                                    <button type="submit" style={{ background: '#2e8157', color: 'white', border: 'none', padding: '0.8rem', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', marginTop: '1rem' }}>Save Item</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 )}
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { loadDestinationByIdWithCache } from '../utils/offlineDestinations';
 import './Booking.css';
 
 const Booking = () => {
@@ -32,14 +33,8 @@ const Booking = () => {
     ].map((d, i) => ({ ...d, _id: `fallback-${i}`, id: `fallback-${i}` }));
 
     useEffect(() => {
-        const rawUrl = import.meta.env.VITE_API_URL?.trim();
-        const isProduction = !window.location.hostname.includes('localhost');
-        const apiUrl = (rawUrl && (!rawUrl.includes('localhost') || !isProduction))
-            ? rawUrl
-            : (isProduction ? window.location.origin : 'http://localhost:5000');
-
-        // Check for fallback in ID
-        if (id && id.startsWith('fallback')) {
+        if (!id) return;
+        if (id.startsWith('fallback')) {
             const index = parseInt(id.split('-')[1]);
             if (!isNaN(index) && fallbackDestinations[index]) {
                 setDestination(fallbackDestinations[index]);
@@ -47,22 +42,17 @@ const Booking = () => {
             }
         }
 
-        fetch(`${apiUrl}/api/destinations/${id}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.name) {
-                    setDestination(data);
-                } else {
-                    // Search in fallback by name if ID mismatch but data is missing
-                    const fromFallback = fallbackDestinations.find(d => d._id === id);
-                    if (fromFallback) setDestination(fromFallback);
-                }
-            })
-            .catch(err => {
-                console.error("Error fetching destination, searching fallbacks", err);
-                const fromFallback = fallbackDestinations.find(d => d._id === id);
-                if (fromFallback) setDestination(fromFallback);
-            });
+        let cancelled = false;
+        loadDestinationByIdWithCache(id).then(({ data }) => {
+            if (cancelled) return;
+            if (data && data.name) {
+                setDestination(data);
+                return;
+            }
+            const fromFallback = fallbackDestinations.find(d => d._id === id);
+            if (fromFallback) setDestination(fromFallback);
+        });
+        return () => { cancelled = true; };
     }, [id]);
 
 

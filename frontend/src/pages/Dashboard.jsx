@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -11,8 +12,21 @@ const Dashboard = () => {
         destinations: '126',
         rating: '4.6'
     });
+    const navigate = useNavigate();
 
     useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const userObj = JSON.parse(storedUser);
+            if (userObj.role !== 'admin') {
+                navigate('/');
+                return;
+            }
+        } else {
+            navigate('/login');
+            return;
+        }
+
         // Load feedback from localStorage
         const storedFeedback = JSON.parse(localStorage.getItem('userFeedback') || '[]');
         setFeedback(storedFeedback);
