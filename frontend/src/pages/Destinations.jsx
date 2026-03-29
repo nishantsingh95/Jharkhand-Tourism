@@ -1,19 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import markerIconPng from 'leaflet/dist/images/marker-icon.png';
-import markerIcon2xPng from 'leaflet/dist/images/marker-icon-2x.png';
-import 'leaflet/dist/images/marker-shadow.png';
-import { useNavigate } from 'react-router-dom';
 import DestinationCard from '../components/DestinationCard';
 import { loadDestinationsWithCache } from '../utils/offlineDestinations';
 import './Destinations.css';
 
-// Bundled marker assets so map pins work offline (tiles may still need prior cache).
+// Using CDN links for Leaflet marker assets to bypass Vite/Rollup bundling issues
 const mapIcon = new L.Icon({
-    iconUrl: markerIconPng,
-    iconRetinaUrl: markerIcon2xPng,
-    shadowUrl: markerShadowPng,
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
@@ -50,8 +46,6 @@ const Destinations = () => {
     const [loading, setLoading] = useState(true);
     const [dataSource, setDataSource] = useState(null);
     const [activeFilter, setActiveFilter] = useState('All Places');
-    const [user, setUser] = useState(null);
-    const navigate = useNavigate();
 
     const mapRef = useRef(null);
     const mapInstance = useRef(null);
@@ -96,12 +90,6 @@ const Destinations = () => {
             }
             setLoading(false);
         });
-
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-
         return () => { cancelled = true; };
     }, []);
 
@@ -228,19 +216,6 @@ const Destinations = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h2 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>Discover Places</h2>
-                    {user && user.role === 'admin' && (
-                        <button 
-                            className="btn btn-primary" 
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: '50px', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }}
-                            onClick={() => navigate('/add-destination')}
-                        >
-                            <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>+</span> Add Destination
-                        </button>
-                    )}
                 </div>
 
                 <div className="scrollable-cards">
