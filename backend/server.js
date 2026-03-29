@@ -106,6 +106,55 @@ app.get('/api/destinations/:id', async (req, res) => {
     }
 });
 
+// Create Destination (Admin Only)
+app.post('/api/destinations', async (req, res) => {
+    try {
+        if (mongoose.connection.readyState !== 1) {
+            // For offline testing: dynamically push to the destinations array 
+            // In a real scenario, this gets lost on restart unless saved to a file
+            const newDest = { ...req.body, _id: `fallback-new-${Date.now()}` };
+            destinations.push(newDest);
+            return res.status(201).json(newDest);
+        }
+
+        const newDestination = new Destination(req.body);
+        await newDestination.save();
+        res.status(201).json(newDestination);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Update Destination (Admin Only)
+app.put('/api/destinations/:id', async (req, res) => {
+    try {
+        if (mongoose.connection.readyState !== 1) {
+            let index = parseInt(req.params.id);
+            if (isNaN(index)) {
+                // Try finding by fallback id
+                index = destinations.findIndex(d => d._id === req.params.id);
+                if (index === -1) {
+                    const numMatch = req.params.id.match(/\d+/);
+                    if (numMatch) index = parseInt(numMatch[0]) - 1;
+                }
+            }
+            if (index >= 0 && index < destinations.length) {
+                destinations[index] = { ...destinations[index], ...req.body };
+                return res.json(destinations[index]);
+            }
+            return res.status(404).json({ message: 'Destination not found in fallback' });
+        }
+
+        const updated = await Destination.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!updated) {
+            return res.status(404).json({ message: 'Destination not found' });
+        }
+        res.json(updated);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // In-memory fallback for testing without DB
 const fallbackUsers = [];
 

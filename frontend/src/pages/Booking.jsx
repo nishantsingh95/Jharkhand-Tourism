@@ -7,6 +7,7 @@ const Booking = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [destination, setDestination] = useState(null);
+    const [user, setUser] = useState(null);
 
     const fallbackDestinations = [
         { name: "Netarhat", description: "Known as the 'Queen of Chotanagpur', Netarhat is a pristine hill station famous for its glorious sunrises and sunsets through the dense pine forests.", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Pine_trees_of_Netarhat_Hill_station.jpg/960px-Pine_trees_of_Netarhat_Hill_station.jpg", location: "Latehar District", pricePerNight: 2500, rating: 4.8, exploreTime: "2-3 Days", bestTimeToVisit: "October to March" },
@@ -52,6 +53,12 @@ const Booking = () => {
             const fromFallback = fallbackDestinations.find(d => d._id === id);
             if (fromFallback) setDestination(fromFallback);
         });
+
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+
         return () => { cancelled = true; };
     }, [id]);
 
@@ -103,6 +110,11 @@ const Booking = () => {
                         <button className="btn btn-secondary btn-block btn-back-pill" onClick={() => navigate('/destinations')}>
                             <span className="back-icon">←</span> Back to Destinations
                         </button>
+                        {user && user.role === 'admin' && (
+                            <button className="btn btn-primary btn-block" style={{ marginTop: '1rem', background: '#3b82f6' }} onClick={() => navigate(`/edit-destination/${id}`)}>
+                                ✏️ Modify Destination
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
