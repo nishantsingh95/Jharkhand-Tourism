@@ -149,7 +149,7 @@ app.get('/api/destinations/:id', async (req, res) => {
 // Admin: create a new destination (with image upload)
 app.post('/api/destinations', upload.single('image'), async (req, res) => {
     try {
-        const { name, description, location, exploreTime, bestTimeToVisit, category } = req.body || {};
+        const { name, description, location, exploreTime, bestTimeToVisit, category, rating } = req.body || {};
         const imageFile = req.file;
 
         if (!name || !description || !location) {
@@ -170,7 +170,7 @@ app.post('/api/destinations', upload.single('image'), async (req, res) => {
             bestTimeToVisit: bestTimeToVisit || undefined,
             category: category || undefined,
             pricePerNight: 0,
-            rating: 0
+            rating: rating ? parseFloat(rating) : 0
         };
 
         if (mongoose.connection.readyState !== 1) {
@@ -212,6 +212,35 @@ app.delete('/api/destinations/:id', async (req, res) => {
     } catch (error) {
         console.error('Delete destination error:', error);
         res.status(500).json({ message: error.message || 'Failed to delete destination' });
+    }
+});
+
+// User: rate destination
+app.put('/api/destinations/:id/rate', async (req, res) => {
+    try {
+        const newRating = parseFloat(req.body.rating);
+        if (isNaN(newRating) || newRating < 1 || newRating > 5) {
+            return res.status(400).json({ message: 'Rating must be a number between 1 and 5' });
+        }
+
+        if (mongoose.connection.readyState !== 1) {
+            return res.json({ message: 'Rated locally', newRating });
+        }
+
+        const destination = await Destination.findById(req.params.id);
+        if (!destination) {
+            return res.status(404).json({ message: 'Destination not found' });
+        }
+
+        // Extremely simple average metric
+        const currentRating = destination.rating || 0;
+        destination.rating = currentRating === 0 ? newRating : parseFloat(((currentRating + newRating) / 2).toFixed(1));
+        await destination.save();
+
+        res.json({ message: 'Rating submitted successfully', newRating: destination.rating });
+    } catch (error) {
+        console.error('Rating error:', error);
+        res.status(500).json({ message: error.message || 'Failed to submit rating' });
     }
 });
 

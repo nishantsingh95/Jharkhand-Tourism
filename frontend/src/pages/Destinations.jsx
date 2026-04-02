@@ -56,7 +56,8 @@ const Destinations = () => {
         location: '',
         category: '',
         exploreTime: '',
-        bestTimeToVisit: ''
+        bestTimeToVisit: '',
+        rating: '4.5'
     });
     const [addImageFile, setAddImageFile] = useState(null);
     const [addImagePreview, setAddImagePreview] = useState(null);
@@ -266,7 +267,7 @@ const Destinations = () => {
                         if (addImagePreview && addImagePreview.startsWith('blob:')) {
                             URL.revokeObjectURL(addImagePreview);
                         }
-                        setAddForm({ name: '', description: '', location: '', category: '', exploreTime: '', bestTimeToVisit: '' });
+                        setAddForm({ name: '', description: '', location: '', category: '', exploreTime: '', bestTimeToVisit: '', rating: '4.5' });
                         setAddImageFile(null);
                         setAddImagePreview(null);
                         setShowAddModal(true);
@@ -286,7 +287,7 @@ const Destinations = () => {
                             URL.revokeObjectURL(addImagePreview);
                         }
                         setShowAddModal(false);
-                        setAddForm({ name: '', description: '', location: '', category: '', exploreTime: '', bestTimeToVisit: '' });
+                        setAddForm({ name: '', description: '', location: '', category: '', exploreTime: '', bestTimeToVisit: '', rating: '4.5' });
                         setAddImageFile(null);
                         setAddImagePreview(null);
                     }}
@@ -342,6 +343,19 @@ const Destinations = () => {
                                 placeholder="e.g., 1-2 Days"
                                 value={addForm.exploreTime}
                                 onChange={(e) => setAddForm(prev => ({ ...prev, exploreTime: e.target.value }))}
+                                className="form-input"
+                                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)' }}
+                            />
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Rating (out of 5)</label>
+                            <input
+                                type="number"
+                                placeholder="e.g., 4.5"
+                                min="1" max="5" step="0.1"
+                                value={addForm.rating}
+                                onChange={(e) => setAddForm(prev => ({ ...prev, rating: e.target.value }))}
                                 className="form-input"
                                 style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)' }}
                             />
@@ -411,7 +425,7 @@ const Destinations = () => {
                                         URL.revokeObjectURL(addImagePreview);
                                     }
                                     setShowAddModal(false);
-                                    setAddForm({ name: '', description: '', location: '', category: '', exploreTime: '', bestTimeToVisit: '' });
+                                    setAddForm({ name: '', description: '', location: '', category: '', exploreTime: '', bestTimeToVisit: '', rating: '4.5' });
                                     setAddImageFile(null);
                                     setAddImagePreview(null);
                                 }}
@@ -448,6 +462,7 @@ const Destinations = () => {
                                         formData.append('exploreTime', addForm.exploreTime);
                                         formData.append('bestTimeToVisit', addForm.bestTimeToVisit);
                                         formData.append('category', addForm.category);
+                                        formData.append('rating', addForm.rating);
                                         formData.append('image', addImageFile);
 
                                         const res = await fetch(`${apiUrl}/api/destinations`, {
@@ -473,7 +488,7 @@ const Destinations = () => {
                                             URL.revokeObjectURL(addImagePreview);
                                         }
                                         setShowAddModal(false);
-                                        setAddForm({ name: '', description: '', location: '', category: '', exploreTime: '', bestTimeToVisit: '' });
+                                        setAddForm({ name: '', description: '', location: '', category: '', exploreTime: '', bestTimeToVisit: '', rating: '4.5' });
                                         setAddImageFile(null);
                                         setAddImagePreview(null);
                                     } catch (e) {

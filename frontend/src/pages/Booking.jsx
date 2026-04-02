@@ -81,9 +81,13 @@ const Booking = () => {
     }, [id]);
 
     const panoramaUrl = useMemo(() => {
-        // For now we use the destination image as the panorama.
-        // If you later add a dedicated 360 image field (e.g. `image360`), use it here.
-        return destination?.image || '';
+        if (!destination) return '';
+        let url = destination.image || 'https://picsum.photos/seed/travel/800/500';
+        if (url.includes('localhost')) {
+            const apiUrl = resolveApiUrl();
+            url = url.replace(/http:\/\/localhost:\d+/i, apiUrl);
+        }
+        return url;
     }, [destination]);
 
     useEffect(() => {
@@ -129,11 +133,40 @@ const Booking = () => {
 
     if (!destination) return <div className="container" style={{ paddingTop: '8rem' }}>Loading details...</div>;
 
+    const handleRate = async (newRating) => {
+        if (!user) {
+            alert('Please login to rate this destination.');
+            return;
+        }
+        try {
+            const apiUrl = resolveApiUrl();
+            const res = await fetch(`${apiUrl}/api/destinations/${destination._id}/rate`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rating: newRating })
+            });
+
+            if (!res.ok) throw new Error('Failed to submit rating');
+            const data = await res.json();
+            
+            setDestination(prev => ({ ...prev, rating: data.newRating || newRating }));
+            alert('Thanks for rating!');
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
     const renderStars = (rating) => {
         const stars = [];
         for (let i = 1; i <= 5; i++) {
             stars.push(
-                <span key={i} className={`star ${i <= Math.round(rating) ? 'filled' : ''}`}>★</span>
+                <span 
+                    key={i} 
+                    className={`star ${i <= Math.round(rating) ? 'filled' : ''}`}
+                    onClick={() => handleRate(i)}
+                    style={{ cursor: 'pointer' }}
+                    title={user ? `Rate ${i}` : 'Login to rate'}
+                >★</span>
             );
         }
         return stars;
