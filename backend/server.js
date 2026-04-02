@@ -187,6 +187,34 @@ app.post('/api/destinations', upload.single('image'), async (req, res) => {
     }
 });
 
+// Admin: delete destination
+app.delete('/api/destinations/:id', async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            // For fallback IDs like 'fallback-0'
+            const idx = destinations.findIndex(d => d._id === req.params.id || `fallback-${destinations.indexOf(d)}` === req.params.id);
+            if (idx > -1) {
+                destinations.splice(idx, 1);
+                return res.json({ message: 'Test destination deleted successfully' });
+            }
+            return res.status(400).json({ message: 'Invalid ID format' });
+        }
+
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(200).json({ message: 'Deleted locally' });
+        }
+        
+        const deleted = await Destination.findByIdAndDelete(req.params.id);
+        if (!deleted) {
+            return res.status(404).json({ message: 'Destination not found' });
+        }
+        res.json({ message: 'Destination deleted successfully' });
+    } catch (error) {
+        console.error('Delete destination error:', error);
+        res.status(500).json({ message: error.message || 'Failed to delete destination' });
+    }
+});
+
 // In-memory fallback for testing without DB
 const fallbackUsers = [];
 

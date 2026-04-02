@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { loadDestinationByIdWithCache } from '../utils/offlineDestinations';
+import { resolveApiUrl } from '../utils/apiBase';
 import { Viewer } from 'photo-sphere-viewer';
 import 'photo-sphere-viewer/dist/photo-sphere-viewer.css';
 import './Booking.css';
@@ -138,6 +139,12 @@ const Booking = () => {
         return stars;
     };
 
+    let processedImage = destination.image || 'https://picsum.photos/seed/travel/800/500';
+    if (processedImage.includes('localhost')) {
+        const apiUrl = resolveApiUrl();
+        processedImage = processedImage.replace(/http:\/\/localhost:\d+/i, apiUrl);
+    }
+
     return (
         <div className="booking-page container animate-fade-in" style={{ paddingTop: '8rem', paddingBottom: '4rem' }}>
             <div className="booking-layout">
@@ -162,7 +169,12 @@ const Booking = () => {
                     </div>
 
                     {!show360 ? (
-                        <img src={destination.image} alt={destination.name} className="booking-image" />
+                        <img 
+                            src={processedImage} 
+                            alt={destination.name} 
+                            className="booking-image" 
+                            onError={(e) => { e.target.onerror = null; e.target.src = 'https://picsum.photos/seed/Jharkhand/800/500'; }}
+                        />
                     ) : (
                         <div ref={viewerContainerRef} className="booking-360-view" />
                     )}
@@ -209,7 +221,23 @@ const Booking = () => {
                                 <button
                                     className="btn admin-delete-btn"
                                     style={{ flex: 1, background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: 'white', border: 'none', borderRadius: '12px', padding: '0.75rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                                    onClick={() => { if (window.confirm(`Are you sure you want to delete "${destination.name}"?`)) { alert('Delete logic goes here. Connect to your backend API.'); navigate('/destinations'); } }}
+                                    onClick={async () => { 
+                                        if (window.confirm(`Are you sure you want to delete "${destination.name}"?`)) { 
+                                            try {
+                                                const apiUrl = resolveApiUrl();
+                                                const res = await fetch(`${apiUrl}/api/destinations/${destination._id}`, {
+                                                    method: 'DELETE'
+                                                });
+                                                if (!res.ok) {
+                                                    const errData = await res.json().catch(() => ({}));
+                                                    throw new Error(errData.message || 'Failed to delete destination');
+                                                }
+                                                navigate('/destinations'); 
+                                            } catch (error) {
+                                                alert(error.message);
+                                            }
+                                        } 
+                                    }}
                                 >
                                     🗑️ Delete
                                 </button>

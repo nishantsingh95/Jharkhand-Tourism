@@ -1,13 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { resolveApiUrl } from '../utils/apiBase';
 import './DestinationCard.css';
 
 const DestinationCard = ({ destination }) => {
+    // If the DB saved a localhost URL but we are in production, rewrite the URL.
+    const [imgSrc, setImgSrc] = useState(() => {
+        let url = destination.image || 'https://picsum.photos/seed/travel/800/500';
+        if (url.includes('localhost')) {
+            const apiUrl = resolveApiUrl();
+            url = url.replace(/http:\/\/localhost:\d+/i, apiUrl);
+        }
+        return url;
+    });
+
     return (
         <div className="destination-card glass-card">
             <div className="card-image-wrapper">
-                <img src={destination.image} alt={destination.name} className="card-image" />
-                <div className="card-rating">★ {destination.rating}</div>
+                <img 
+                    src={imgSrc} 
+                    alt={destination.name} 
+                    className="card-image" 
+                    onError={() => setImgSrc('https://picsum.photos/seed/Jharkhand/800/500')}
+                />
+                <div className="card-rating">★ {destination.rating || 'New'}</div>
             </div>
             <div className="card-content">
                 <div className="card-header">
