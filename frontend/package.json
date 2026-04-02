@@ -11,6 +11,7 @@
   "dependencies": {
     "html2pdf.js": "^0.14.0",
     "leaflet": "^1.9.4",
+    "photo-sphere-viewer": "^4.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-leaflet": "^4.2.1",

@@ -1,13 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { loadDestinationByIdWithCache } from '../utils/offlineDestinations';
+import { Viewer } from 'photo-sphere-viewer';
+import 'photo-sphere-viewer/dist/photo-sphere-viewer.css';
 import './Booking.css';
+import './Destinations.css';
 
 const Booking = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [destination, setDestination] = useState(null);
     const [user, setUser] = useState(null);
+    const [show360, setShow360] = useState(false);
+    const viewerContainerRef = useRef(null);
+    const viewerInstanceRef = useRef(null);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editForm, setEditForm] = useState({ name: '', description: '', location: '', category: '', bestTimeToVisit: '', exploreTime: '' });
+    const [editImageFile, setEditImageFile] = useState(null);
+    const [editImagePreview, setEditImagePreview] = useState(null);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) setUser(JSON.parse(storedUser));
+    }, []);
+
+    // When the edit modal opens, default the preview to the existing destination image.
+    useEffect(() => {
+        if (showEditModal && destination) {
+            setEditImageFile(null);
+            setEditImagePreview(destination.image || null);
+        }
+    }, [showEditModal, destination]);
 
     const fallbackDestinations = [
         { name: "Netarhat", description: "Known as the 'Queen of Chotanagpur', Netarhat is a pristine hill station famous for its glorious sunrises and sunsets through the dense pine forests.", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Pine_trees_of_Netarhat_Hill_station.jpg/960px-Pine_trees_of_Netarhat_Hill_station.jpg", location: "Latehar District", pricePerNight: 2500, rating: 4.8, exploreTime: "2-3 Days", bestTimeToVisit: "October to March" },
@@ -53,14 +76,54 @@ const Booking = () => {
             const fromFallback = fallbackDestinations.find(d => d._id === id);
             if (fromFallback) setDestination(fromFallback);
         });
-
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-
         return () => { cancelled = true; };
     }, [id]);
+
+    const panoramaUrl = useMemo(() => {
+        // For now we use the destination image as the panorama.
+        // If you later add a dedicated 360 image field (e.g. `image360`), use it here.
+        return destination?.image || '';
+    }, [destination]);
+
+    useEffect(() => {
+        // Toggle 360 viewer.
+        if (!show360) {
+            if (viewerInstanceRef.current) {
+                viewerInstanceRef.current.destroy();
+                viewerInstanceRef.current = null;
+            }
+            return;
+        }
+
+        if (!panoramaUrl || !viewerContainerRef.current) return;
+
+        if (viewerInstanceRef.current) {
+            viewerInstanceRef.current.destroy();
+            viewerInstanceRef.current = null;
+        }
+
+        try {
+            viewerInstanceRef.current = new Viewer({
+                container: viewerContainerRef.current,
+                panorama: panoramaUrl,
+                defaultZoomLvl: 0.5,
+                lang: 'en',
+                caption: destination?.name || '',
+                mousewheel: true,
+                navbar: true
+            });
+        } catch (e) {
+            console.warn('360 viewer init failed:', e);
+            setShow360(false);
+        }
+
+        return () => {
+            if (viewerInstanceRef.current) {
+                viewerInstanceRef.current.destroy();
+                viewerInstanceRef.current = null;
+            }
+        };
+    }, [show360, panoramaUrl, destination?.name]);
 
 
     if (!destination) return <div className="container" style={{ paddingTop: '8rem' }}>Loading details...</div>;
@@ -79,7 +142,30 @@ const Booking = () => {
         <div className="booking-page container animate-fade-in" style={{ paddingTop: '8rem', paddingBottom: '4rem' }}>
             <div className="booking-layout">
                 <div className="booking-details">
-                    <img src={destination.image} alt={destination.name} className="booking-image" />
+                    <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                        <button
+                            className={`btn ${!show360 ? 'btn-primary' : 'btn-accent'}`}
+                            type="button"
+                            onClick={() => setShow360(false)}
+                            style={{ padding: '0.6rem 1.2rem' }}
+                        >
+                            Photo
+                        </button>
+                        <button
+                            className={`btn ${show360 ? 'btn-primary' : 'btn-accent'}`}
+                            type="button"
+                            onClick={() => setShow360(true)}
+                            style={{ padding: '0.6rem 1.2rem' }}
+                        >
+                            360° View
+                        </button>
+                    </div>
+
+                    {!show360 ? (
+                        <img src={destination.image} alt={destination.name} className="booking-image" />
+                    ) : (
+                        <div ref={viewerContainerRef} className="booking-360-view" />
+                    )}
                     <h1 className="booking-title">{destination.name}</h1>
                     <p className="booking-location">📍 {destination.location}</p>
                     <p className="booking-desc">{destination.description}</p>
@@ -110,14 +196,154 @@ const Booking = () => {
                         <button className="btn btn-secondary btn-block btn-back-pill" onClick={() => navigate('/destinations')}>
                             <span className="back-icon">←</span> Back to Destinations
                         </button>
+
                         {user && user.role === 'admin' && (
-                            <button className="btn btn-primary btn-block" style={{ marginTop: '1rem', background: '#3b82f6' }} onClick={() => navigate(`/edit-destination/${id}`)}>
-                                ✏️ Modify Destination
-                            </button>
+                            <div className="admin-action-buttons" style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                                <button
+                                    className="btn admin-edit-btn"
+                                    style={{ flex: 1, background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', border: 'none', borderRadius: '12px', padding: '0.75rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                    onClick={() => { setEditForm({ name: destination.name || '', description: destination.description || '', location: destination.location || '', category: destination.category || '', bestTimeToVisit: destination.bestTimeToVisit || '', exploreTime: destination.exploreTime || '' }); setShowEditModal(true); }}
+                                >
+                                    ✏️ Edit
+                                </button>
+                                <button
+                                    className="btn admin-delete-btn"
+                                    style={{ flex: 1, background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: 'white', border: 'none', borderRadius: '12px', padding: '0.75rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                    onClick={() => { if (window.confirm(`Are you sure you want to delete "${destination.name}"?`)) { alert('Delete logic goes here. Connect to your backend API.'); navigate('/destinations'); } }}
+                                >
+                                    🗑️ Delete
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
             </div>
+
+            {/* Admin Edit Modal */}
+            {showEditModal && (
+                <div
+                    className="admin-modal-overlay"
+                    onClick={() => {
+                        if (editImagePreview && editImagePreview.startsWith('blob:')) {
+                            URL.revokeObjectURL(editImagePreview);
+                        }
+                        setEditImageFile(null);
+                        setEditImagePreview(null);
+                        setShowEditModal(false);
+                    }}
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <div className="admin-modal glass-card" onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '20px', padding: '2.5rem', width: '90%', maxWidth: '520px', boxShadow: '0 25px 60px rgba(0,0,0,0.2)' }}>
+                        <h2 style={{ marginBottom: '0.5rem' }}>✏️ Edit Destination</h2>
+                        <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>Modify the details for <strong>{destination.name}</strong></p>
+
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: '600', fontSize: '0.85rem', color: '#374151' }}>Category</label>
+                            <select
+                                value={editForm.category}
+                                onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
+                                style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box', background: 'white' }}
+                            >
+                                <option value="">Select category</option>
+                                <option value="Waterfalls">Waterfalls</option>
+                                <option value="Wildlife">Wildlife</option>
+                                <option value="Temples">Temples</option>
+                                <option value="Hills & Views">Hills & Views</option>
+                            </select>
+                        </div>
+
+                        {['name', 'location', 'exploreTime', 'bestTimeToVisit'].map(field => (
+                            <div key={field} style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: '600', textTransform: 'capitalize', fontSize: '0.85rem', color: '#374151' }}>{field.replace(/([A-Z])/g, ' $1')}</label>
+                                <input
+                                    type="text"
+                                    value={editForm[field]}
+                                    onChange={e => setEditForm(prev => ({ ...prev, [field]: e.target.value }))}
+                                    style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box' }}
+                                />
+                            </div>
+                        ))}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: '600', fontSize: '0.85rem', color: '#374151' }}>Description</label>
+                            <textarea
+                                value={editForm.description}
+                                onChange={e => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                                style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '0.95rem', minHeight: '100px', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: '600', fontSize: '0.85rem', color: '#374151' }}>Photo</label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                                    setEditImageFile(file);
+
+                                    if (!file) {
+                                        if (editImagePreview && editImagePreview.startsWith('blob:')) {
+                                            URL.revokeObjectURL(editImagePreview);
+                                        }
+                                        setEditImagePreview(destination.image || null);
+                                        return;
+                                    }
+
+                                    const url = URL.createObjectURL(file);
+                                    setEditImagePreview(prev => {
+                                        if (prev && prev.startsWith('blob:')) {
+                                            URL.revokeObjectURL(prev);
+                                        }
+                                        return url;
+                                    });
+                                }}
+                                style={{ width: '100%' }}
+                            />
+
+                            {editImagePreview && (
+                                <div style={{ marginTop: '0.75rem' }}>
+                                    <img
+                                        src={editImagePreview}
+                                        alt="Edit preview"
+                                        style={{ width: '100%', maxHeight: '220px', objectFit: 'cover', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)' }}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => {
+                                    if (editImagePreview && editImagePreview.startsWith('blob:')) {
+                                        URL.revokeObjectURL(editImagePreview);
+                                    }
+                                    setEditImageFile(null);
+                                    setEditImagePreview(null);
+                                    setShowEditModal(false);
+                                }}
+                                style={{ padding: '0.75rem 1.5rem', borderRadius: '10px', border: '1.5px solid #e2e8f0', background: 'white', fontWeight: '600', cursor: 'pointer' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    alert('Save logic goes here. Connect to your backend API with editForm data.');
+                                    console.log({ ...editForm, photoFile: editImageFile });
+                                    if (editImagePreview && editImagePreview.startsWith('blob:')) {
+                                        URL.revokeObjectURL(editImagePreview);
+                                    }
+                                    setEditImageFile(null);
+                                    setEditImagePreview(null);
+                                    setShowEditModal(false);
+                                }}
+                                style={{ padding: '0.75rem 1.5rem', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', fontWeight: '600', cursor: 'pointer' }}
+                            >
+                                💾 Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

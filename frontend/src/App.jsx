@@ -13,7 +13,6 @@ import Feedback from './pages/Feedback';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import DestinationForm from './pages/DestinationForm';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -35,8 +34,6 @@ function App() {
                         <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
                         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                         <Route path="/book/:id" element={<ProtectedRoute><Booking /></ProtectedRoute>} />
-                        <Route path="/add-destination" element={<ProtectedRoute><DestinationForm /></ProtectedRoute>} />
-                        <Route path="/edit-destination/:id" element={<ProtectedRoute><DestinationForm /></ProtectedRoute>} />
                     </Routes>
                 </main>
                 <Footer />

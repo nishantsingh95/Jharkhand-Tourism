@@ -45,6 +45,8 @@ export default defineConfig(({ mode }) => {
         workbox: {
           skipWaiting: true,
           clientsClaim: true,
+          // Allow caching larger JS bundles (photo-sphere-viewer increases bundle size).
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,woff2,webp,json}'],
           globIgnores: ['**/crafts/**'],
           navigateFallback: '/index.html',

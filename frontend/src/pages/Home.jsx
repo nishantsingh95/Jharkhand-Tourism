@@ -77,22 +77,38 @@ const Home = () => {
 
                 <div className="famous-grid">
                     <div className="famous-card glass-card">
-                        <div className="famous-icon">🏏</div>
+                        <img
+                            className="famous-image"
+                            src="https://i.pinimg.com/originals/48/b3/08/48b3080067ea70c1be144d67251452ba.jpg"
+                            alt="M.S. Dhoni"
+                        />
                         <h3>M.S. Dhoni</h3>
                         <p>The legendary former captain of the Indian Cricket Team hails from Ranchi. His unparalleled legacy inspires millions.</p>
                     </div>
                     <div className="famous-card glass-card">
-                        <div className="famous-icon">🏭</div>
+                        <img
+                            className="famous-image"
+                            src="https://media.glassdoor.com/l/9a/31/d8/44/steel-plant.jpg"
+                            alt="Tata Steel"
+                        />
                         <h3>TATA Steel</h3>
                         <p>Jamshedpur, India's first planned industrial city, is home to Tata Steel, driving the nation's infrastructural boom.</p>
                     </div>
                     <div className="famous-card glass-card">
-                        <div className="famous-icon">🐅</div>
+                        <img
+                            className="famous-image"
+                            src="https://tse1.mm.bing.net/th/id/OIP.WaP8tf9kBkm3d0pM277OUwHaEK?pid=Api&P=0&h=180"
+                            alt="Betla & Dalma"
+                        />
                         <h3>Betla & Dalma</h3>
                         <p>World-class wildlife reserves offering pristine tiger trails, majestic elephants, and untouched biodiversity.</p>
                     </div>
                     <div className="famous-card glass-card">
-                        <div className="famous-icon">🎨</div>
+                        <img
+                            className="famous-image"
+                            src="https://i.pinimg.com/originals/08/95/38/089538756e47605c5b6c632b13cf8dbe.jpg"
+                            alt="Sohrai Art"
+                        />
                         <h3>Sohrai Art</h3>
                         <p>Ancient tribal mural paintings found on the mud walls of traditional houses, depicting nature and harvest.</p>
                     </div>
@@ -107,22 +123,38 @@ const Home = () => {
 
                 <div className="famous-grid">
                     <div className="famous-card glass-card">
-                        <div className="famous-icon">🎓</div>
+                        <img
+                            className="famous-image"
+                            src="https://tse1.mm.bing.net/th/id/OIP.11TC4AOwlk8uVu290YhpjAHaCV?pid=Api&P=0&h=180"
+                            alt="IIT (ISM) Dhanbad"
+                        />
                         <h3>IIT (ISM) Dhanbad</h3>
                         <p>Established in 1926, a premier engineering institute world-renowned for Earth Sciences and Mining Engineering.</p>
                     </div>
                     <div className="famous-card glass-card">
-                        <div className="famous-icon">🏢</div>
+                        <img
+                            className="famous-image"
+                            src="https://tse2.mm.bing.net/th/id/OIP.iVYHGUGq-KhC-pp4sj4d6AHaEK?pid=Api&P=0&h=180"
+                            alt="XLRI Jamshedpur"
+                        />
                         <h3>XLRI Jamshedpur</h3>
                         <p>India's oldest business school, consistently ranked among the top management institutes in the country.</p>
                     </div>
                     <div className="famous-card glass-card">
-                        <div className="famous-icon">💻</div>
+                        <img
+                            className="famous-image"
+                            src="https://tse4.mm.bing.net/th/id/OIP.xyr0hsgy5ybMSueZvrvTQwHaD2?pid=Api&P=0&h=180"
+                            alt="BIT Mesra"
+                        />
                         <h3>BIT Mesra</h3>
                         <p>A pioneering institute in engineering and technology, boasting lush green campuses and top-tier research facilities.</p>
                     </div>
                     <div className="famous-card glass-card">
-                        <div className="famous-icon">🏥</div>
+                        <img
+                            className="famous-image"
+                            src="https://tse1.mm.bing.net/th/id/OIP.g5v4aNBVX3WqAdoQCOmawgHaCm?pid=Api&P=0&h=180"
+                            alt="RIMS Ranchi"
+                        />
                         <h3>RIMS Ranchi</h3>
                         <p>The premier medical college and hospital of Jharkhand, providing world-class healthcare education and services.</p>
                     </div>
@@ -140,22 +172,38 @@ const Home = () => {
 
                     <div className="famous-grid">
                         <div className="famous-card glass-card" style={{ background: 'white' }}>
-                            <div className="famous-icon">🎭</div>
+                            <img
+                                className="famous-image"
+                                src="https://c8.alamy.com/comp/2KCYERN/artists-from-jharkhand-region-perform-traditional-manbhum-chhau-dance-during-the-closing-of-lokrang-festival-at-jkk-in-jaipur-rajasthan-indiaon-saturday-night-dec-252021photo-by-vishal-bhatnagarnurphoto-2KCYERN.jpg"
+                                alt="Chhau Dance"
+                            />
                             <h3>Chhau Dance</h3>
                             <p>A mesmerizing semi-classical martial dance using vibrant masks, celebrating mythology and folklore.</p>
                         </div>
                         <div className="famous-card glass-card" style={{ background: 'white' }}>
-                            <div className="famous-icon">🌿</div>
+                            <img
+                                className="famous-image"
+                                src="https://tse1.mm.bing.net/th/id/OIP.yvxMknkInOjTca9qegvhyAHaE8?pid=Api&P=0&h=180"
+                                alt="Sarhul Festival"
+                            />
                             <h3>Sarhul Festival</h3>
                             <p>The largest tribal festival celebrating the spring season and the worship of the majestic Sal trees.</p>
                         </div>
                         <div className="famous-card glass-card" style={{ background: 'white' }}>
-                            <div className="famous-icon">🎨</div>
+                            <img
+                                className="famous-image"
+                                src="https://www.vifindia.org/sites/default/files/maatighar.jpg"
+                                alt="Sohrai Art"
+                            />
                             <h3>Sohrai Art</h3>
                             <p>Traditional ritualistic mural paintings created by women to welcome the harvest and celebrate nature.</p>
                         </div>
                         <div className="famous-card glass-card" style={{ background: 'white' }}>
-                            <div className="famous-icon">🪘</div>
+                            <img
+                                className="famous-image"
+                                src="https://tse4.mm.bing.net/th/id/OIP.51h60Wbh4T2ZaZ3zJ4PgeQHaFj?pid=Api&P=0&h=180"
+                                alt="Mandar Rhythms"
+                            />
                             <h3>Mandar Rhythms</h3>
                             <p>The heartbeat of local festivals, this traditional tribal drum brings the community together in joyous harmony.</p>
                         </div>

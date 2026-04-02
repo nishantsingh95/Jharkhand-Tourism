@@ -5,8 +5,10 @@ const destinationSchema = new mongoose.Schema({
     description: { type: String, required: true },
     image: { type: String, required: true },
     location: { type: String, required: true },
-    pricePerNight: { type: Number, required: true },
+    // Admin panel currently doesn't collect price; keep it optional.
+    pricePerNight: { type: Number, default: 0 },
     rating: { type: Number, default: 0 },
+    category: { type: String },
     exploreTime: { type: String },
     bestTimeToVisit: { type: String }
 });

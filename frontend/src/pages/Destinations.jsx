@@ -3,6 +3,8 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import DestinationCard from '../components/DestinationCard';
 import { loadDestinationsWithCache } from '../utils/offlineDestinations';
+import { resolveApiUrl } from '../utils/apiBase';
+import { setCachedDestinations } from '../utils/destinationsCache';
 import './Destinations.css';
 
 // Using CDN links for Leaflet marker assets to bypass Vite/Rollup bundling issues
@@ -46,12 +48,33 @@ const Destinations = () => {
     const [loading, setLoading] = useState(true);
     const [dataSource, setDataSource] = useState(null);
     const [activeFilter, setActiveFilter] = useState('All Places');
+    const [user, setUser] = useState(null);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [addForm, setAddForm] = useState({
+        name: '',
+        description: '',
+        location: '',
+        category: '',
+        exploreTime: '',
+        bestTimeToVisit: ''
+    });
+    const [addImageFile, setAddImageFile] = useState(null);
+    const [addImagePreview, setAddImagePreview] = useState(null);
+    const [addingDestination, setAddingDestination] = useState(false);
 
     const mapRef = useRef(null);
     const mapInstance = useRef(null);
     const markerLayerRef = useRef(null);
 
     const filters = ['All Places', 'Waterfalls', 'Wildlife', 'Temples', 'Hills & Views'];
+    const categoryOptions = ['Waterfalls', 'Wildlife', 'Temples', 'Hills & Views'];
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }, []);
 
     const fallbackData = [
         { name: "Netarhat", description: "Known as the 'Queen of Chotanagpur', Netarhat is a pristine hill station famous for its glorious sunrises and sunsets through the dense pine forests.", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Pine_trees_of_Netarhat_Hill_station.jpg/960px-Pine_trees_of_Netarhat_Hill_station.jpg", location: "Latehar District", pricePerNight: 2500, rating: 4.8 },
@@ -96,9 +119,14 @@ const Destinations = () => {
 
     const getFiltered = () => {
         if (activeFilter === 'All Places') return destinations;
-        const lowerFilter = activeFilter.toLowerCase();
 
         return destinations.filter(d => {
+            const destCategory = (d.category || '').toString().trim();
+            if (destCategory) {
+                // When admin saved a category, trust it for accurate filtering.
+                return destCategory.toLowerCase() === activeFilter.toLowerCase();
+            }
+
             const name = (d.name || d.title || '').toLowerCase();
             if (activeFilter === 'Waterfalls') return name.includes('fall');
             if (activeFilter === 'Wildlife') return name.includes('park') || name.includes('sanctuary') || name.includes('betla') || name.includes('dalma');
@@ -228,6 +256,240 @@ const Destinations = () => {
                     )}
                 </div>
             </div>
+
+            {/* Admin Floating Add Button */}
+            {user && user.role === 'admin' && (
+                <button 
+                    className="admin-fab"
+                    onClick={() => {
+                        // Reset the modal state when opening
+                        if (addImagePreview && addImagePreview.startsWith('blob:')) {
+                            URL.revokeObjectURL(addImagePreview);
+                        }
+                        setAddForm({ name: '', description: '', location: '', category: '', exploreTime: '', bestTimeToVisit: '' });
+                        setAddImageFile(null);
+                        setAddImagePreview(null);
+                        setShowAddModal(true);
+                    }}
+                    title="Add New Destination"
+                >
+                    +
+                </button>
+            )}
+
+            {/* Simple Add Modal Placeholder */}
+            {showAddModal && (
+                <div
+                    className="admin-modal-overlay glass"
+                    onClick={() => {
+                        if (addImagePreview && addImagePreview.startsWith('blob:')) {
+                            URL.revokeObjectURL(addImagePreview);
+                        }
+                        setShowAddModal(false);
+                        setAddForm({ name: '', description: '', location: '', category: '', exploreTime: '', bestTimeToVisit: '' });
+                        setAddImageFile(null);
+                        setAddImagePreview(null);
+                    }}
+                >
+                    <div className="admin-modal glass-card" onClick={e => e.stopPropagation()}>
+                        <h2>✨ Add New Destination</h2>
+                        <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem' }}>Create a stunning new spot for travelers.</p>
+                        
+                        <div className="form-group" style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Destination Name</label>
+                            <input
+                                type="text"
+                                placeholder="e.g., The Grand Canyon"
+                                value={addForm.name}
+                                onChange={(e) => setAddForm(prev => ({ ...prev, name: e.target.value }))}
+                                className="form-input"
+                                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)' }}
+                            />
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Location</label>
+                            <input
+                                type="text"
+                                placeholder="e.g., Ranchi"
+                                value={addForm.location}
+                                onChange={(e) => setAddForm(prev => ({ ...prev, location: e.target.value }))}
+                                className="form-input"
+                                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)' }}
+                            />
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Category</label>
+                            <select
+                                value={addForm.category}
+                                onChange={(e) => setAddForm(prev => ({ ...prev, category: e.target.value }))}
+                                style={{ width: '100%', padding: '0.85rem', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', background: 'white' }}
+                            >
+                                <option value="">Select category</option>
+                                {categoryOptions.map(opt => (
+                                    <option key={opt} value={opt}>
+                                        {opt}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Explore Time</label>
+                            <input
+                                type="text"
+                                placeholder="e.g., 1-2 Days"
+                                value={addForm.exploreTime}
+                                onChange={(e) => setAddForm(prev => ({ ...prev, exploreTime: e.target.value }))}
+                                className="form-input"
+                                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)' }}
+                            />
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Best Time to Visit</label>
+                            <input
+                                type="text"
+                                placeholder="e.g., October to March"
+                                value={addForm.bestTimeToVisit}
+                                onChange={(e) => setAddForm(prev => ({ ...prev, bestTimeToVisit: e.target.value }))}
+                                className="form-input"
+                                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)' }}
+                            />
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Description</label>
+                            <textarea
+                                placeholder="Describe the place..."
+                                value={addForm.description}
+                                onChange={(e) => setAddForm(prev => ({ ...prev, description: e.target.value }))}
+                                className="form-input"
+                                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', minHeight: '100px' }}
+                            />
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Photo</label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                                    setAddImageFile(file);
+
+                                    if (addImagePreview && addImagePreview.startsWith('blob:')) {
+                                        URL.revokeObjectURL(addImagePreview);
+                                    }
+
+                                    if (!file) {
+                                        setAddImagePreview(null);
+                                        return;
+                                    }
+                                    const url = URL.createObjectURL(file);
+                                    setAddImagePreview(url);
+                                }}
+                                style={{ width: '100%' }}
+                            />
+                            {addImagePreview && (
+                                <div style={{ marginTop: '0.75rem' }}>
+                                    <img
+                                        src={addImagePreview}
+                                        alt="Preview"
+                                        style={{ width: '100%', maxHeight: '220px', objectFit: 'cover', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)' }}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => {
+                                    if (addImagePreview && addImagePreview.startsWith('blob:')) {
+                                        URL.revokeObjectURL(addImagePreview);
+                                    }
+                                    setShowAddModal(false);
+                                    setAddForm({ name: '', description: '', location: '', category: '', exploreTime: '', bestTimeToVisit: '' });
+                                    setAddImageFile(null);
+                                    setAddImagePreview(null);
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                disabled={addingDestination}
+                                onClick={async () => {
+                                    const requireText = (v) => typeof v === 'string' && v.trim().length > 0;
+
+                                    if (!requireText(addForm.name) || !requireText(addForm.description) || !requireText(addForm.location)) {
+                                        alert('Please fill Destination Name, Description, and Location.');
+                                        return;
+                                    }
+                                    if (!requireText(addForm.exploreTime) || !requireText(addForm.bestTimeToVisit) || !requireText(addForm.category)) {
+                                        alert('Please select Category and fill Explore Time + Best Time to Visit.');
+                                        return;
+                                    }
+                                    if (!addImageFile) {
+                                        alert('Please choose a Photo.');
+                                        return;
+                                    }
+
+                                    setAddingDestination(true);
+                                    setLoading(true);
+                                    try {
+                                        const apiUrl = resolveApiUrl();
+                                        const formData = new FormData();
+                                        formData.append('name', addForm.name);
+                                        formData.append('description', addForm.description);
+                                        formData.append('location', addForm.location);
+                                        formData.append('exploreTime', addForm.exploreTime);
+                                        formData.append('bestTimeToVisit', addForm.bestTimeToVisit);
+                                        formData.append('category', addForm.category);
+                                        formData.append('image', addImageFile);
+
+                                        const res = await fetch(`${apiUrl}/api/destinations`, {
+                                            method: 'POST',
+                                            body: formData
+                                        });
+
+                                        if (!res.ok) {
+                                            const errText = await res.text().catch(() => '');
+                                            throw new Error(errText || `Server returned ${res.status}`);
+                                        }
+
+                                        // Fetch fresh list from backend (don't rely on offline cache).
+                                        const refreshed = await fetch(`${apiUrl}/api/destinations`);
+                                        const refreshedData = await refreshed.json();
+                                        const list = Array.isArray(refreshedData) ? refreshedData : [];
+                                        setDestinations(list);
+                                        setDataSource('network');
+                                        setCachedDestinations(list);
+
+                                        // Close/reset only after successful save
+                                        if (addImagePreview && addImagePreview.startsWith('blob:')) {
+                                            URL.revokeObjectURL(addImagePreview);
+                                        }
+                                        setShowAddModal(false);
+                                        setAddForm({ name: '', description: '', location: '', category: '', exploreTime: '', bestTimeToVisit: '' });
+                                        setAddImageFile(null);
+                                        setAddImagePreview(null);
+                                    } catch (e) {
+                                        alert(e?.message || 'Failed to add destination');
+                                    } finally {
+                                        setAddingDestination(false);
+                                        setLoading(false);
+                                    }
+                                }}
+                            >
+                                {addingDestination ? 'Adding...' : 'Add Place'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

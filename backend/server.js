@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import Destination from './models/Destination.js';
 import User from './models/User.js';
 import { destinations } from './data/destinations.js';
@@ -30,6 +33,25 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Serve uploaded images (for admin add/edit).
+const uploadsRoot = path.resolve('uploads');
+const destinationsUploadDir = path.join(uploadsRoot, 'destinations');
+fs.mkdirSync(destinationsUploadDir, { recursive: true });
+app.use('/uploads', express.static(uploadsRoot));
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, destinationsUploadDir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname || '');
+        const safeExt = ext ? ext.toLowerCase() : '.jpg';
+        const filename = `${Date.now()}-${Math.random().toString(16).slice(2)}${safeExt}`;
+        cb(null, filename);
+    }
+});
+const upload = multer({ storage });
+
 // For local testing, we'll connect to memory or a local MongoDB fallback
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/jharkhand-tourism';
 
@@ -51,23 +73,41 @@ app.post('/api/seed', async (req, res) => {
 // Destination Routes
 app.get('/api/destinations', async (req, res) => {
     const getFallbackList = () => {
-        return res.json(destinations.map((d, i) => ({ ...d, _id: i.toString() })));
+        return destinations.map((d, i) => ({ ...d, _id: i.toString() }));
     };
 
     try {
         if (mongoose.connection.readyState !== 1) {
-            return getFallbackList();
+            return res.json(getFallbackList());
         }
 
         const allDestinations = await Destination.find({}).maxTimeMS(3000); // 3-second limit
 
         if (!allDestinations || allDestinations.length === 0) {
-            return getFallbackList();
+            return res.json(getFallbackList());
         }
-        res.json(allDestinations);
+
+        // Merge fallback destinations with DB destinations.
+        // This prevents the UI from showing only "just-added" items when the DB
+        // is not fully seeded yet.
+        const dbList = allDestinations.map(d => d.toObject());
+        const fallbackList = getFallbackList();
+
+        const byName = new Map();
+        for (const f of fallbackList) {
+            if (f?.name) byName.set(f.name, f);
+        }
+
+        // Prefer DB values when names collide.
+        for (const dbDest of dbList) {
+            if (dbDest?.name) byName.set(dbDest.name, dbDest);
+        }
+
+        const merged = [...dbList, ...Array.from(byName.values()).filter(f => !dbList.some(db => db.name === f.name))];
+        res.json(merged);
     } catch (error) {
         // If DB query times out or fails, gracefully return the fallback
-        return getFallbackList();
+        return res.json(getFallbackList());
     }
 });
 
@@ -106,52 +146,44 @@ app.get('/api/destinations/:id', async (req, res) => {
     }
 });
 
-// Create Destination (Admin Only)
-app.post('/api/destinations', async (req, res) => {
+// Admin: create a new destination (with image upload)
+app.post('/api/destinations', upload.single('image'), async (req, res) => {
     try {
+        const { name, description, location, exploreTime, bestTimeToVisit, category } = req.body || {};
+        const imageFile = req.file;
+
+        if (!name || !description || !location) {
+            return res.status(400).json({ message: 'name, description, and location are required' });
+        }
+        if (!imageFile) {
+            return res.status(400).json({ message: 'image file is required' });
+        }
+
+        const imageUrl = `${req.protocol}://${req.get('host')}/uploads/destinations/${imageFile.filename}`;
+
+        const payload = {
+            name,
+            description,
+            location,
+            image: imageUrl,
+            exploreTime: exploreTime || undefined,
+            bestTimeToVisit: bestTimeToVisit || undefined,
+            category: category || undefined,
+            pricePerNight: 0,
+            rating: 0
+        };
+
         if (mongoose.connection.readyState !== 1) {
-            // For offline testing: dynamically push to the destinations array 
-            // In a real scenario, this gets lost on restart unless saved to a file
-            const newDest = { ...req.body, _id: `fallback-new-${Date.now()}` };
-            destinations.push(newDest);
-            return res.status(201).json(newDest);
+            // Fallback in-memory persistence for dev/testing when DB is down.
+            destinations.push(payload);
+            return res.status(201).json({ ...payload, _id: (destinations.length - 1).toString() });
         }
 
-        const newDestination = new Destination(req.body);
-        await newDestination.save();
-        res.status(201).json(newDestination);
+        const created = await Destination.create(payload);
+        return res.status(201).json(created);
     } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// Update Destination (Admin Only)
-app.put('/api/destinations/:id', async (req, res) => {
-    try {
-        if (mongoose.connection.readyState !== 1) {
-            let index = parseInt(req.params.id);
-            if (isNaN(index)) {
-                // Try finding by fallback id
-                index = destinations.findIndex(d => d._id === req.params.id);
-                if (index === -1) {
-                    const numMatch = req.params.id.match(/\d+/);
-                    if (numMatch) index = parseInt(numMatch[0]) - 1;
-                }
-            }
-            if (index >= 0 && index < destinations.length) {
-                destinations[index] = { ...destinations[index], ...req.body };
-                return res.json(destinations[index]);
-            }
-            return res.status(404).json({ message: 'Destination not found in fallback' });
-        }
-
-        const updated = await Destination.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updated) {
-            return res.status(404).json({ message: 'Destination not found' });
-        }
-        res.json(updated);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Create destination error:', error);
+        return res.status(500).json({ message: error.message || 'Failed to create destination' });
     }
 });
 
