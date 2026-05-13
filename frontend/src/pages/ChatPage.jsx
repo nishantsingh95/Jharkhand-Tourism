@@ -97,7 +97,18 @@ User says: "${userMsg.trim()}"`;
             }
             const resp = await window.puter.ai.chat(prompt);
             const aiReply = resp?.message?.content || (lang === 'en' ? "I'm having trouble thinking right now." : "मुझे सोचने में परेशानी हो रही है।");
-            const safeReply = typeof aiReply === 'string' ? aiReply : (aiReply?.text || JSON.stringify(aiReply) || "Error");
+            
+            let safeReply = "Error";
+            if (typeof aiReply === 'string') {
+                safeReply = aiReply;
+            } else if (Array.isArray(aiReply)) {
+                safeReply = aiReply.map(part => part.text || '').join('');
+            } else if (aiReply?.text) {
+                safeReply = aiReply.text;
+            } else {
+                safeReply = JSON.stringify(aiReply);
+            }
+            
             setMessages(prev => [...prev, { text: safeReply.replace(/\*\*/g, '').replace(/\*/g, ''), sender: 'ai', speakable: true }]);
         } catch (error) {
             console.error("AI Error:", error);
