@@ -554,7 +554,7 @@ const Marketplace = () => {
                                                                 <div>{item.name}</div>
                                                                 {item.category === 'Guide' && (
                                                                     <div style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '2px' }}>
-                                                                        Guide Ph: {item.guidePhone || `+91 9${item.id.toString().replace(/\D/g, '').padStart(3, '0')} 55210`}
+                                                                        Guide Ph: {item.guidePhone || `+91 9${String(item.id || '').replace(/\D/g, '').padStart(3, '0')} 55210`}
                                                                     </div>
                                                                 )}
                                                             </td>

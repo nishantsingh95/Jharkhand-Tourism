@@ -6,10 +6,12 @@ import './DestinationCard.css';
 const DestinationCard = ({ destination }) => {
     // If the DB saved a localhost URL but we are in production, rewrite the URL.
     const [imgSrc, setImgSrc] = useState(() => {
-        let url = destination.image || 'https://picsum.photos/seed/travel/800/500';
-        if (url.includes('localhost')) {
+        let url = destination?.image || 'https://picsum.photos/seed/travel/800/500';
+        if (typeof url === 'string' && url.includes('localhost')) {
             const apiUrl = resolveApiUrl();
             url = url.replace(/http:\/\/localhost:\d+/i, apiUrl);
+        } else if (typeof url !== 'string') {
+            url = 'https://picsum.photos/seed/travel/800/500';
         }
         return url;
     });

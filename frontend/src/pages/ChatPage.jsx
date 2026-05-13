@@ -97,7 +97,8 @@ User says: "${userMsg.trim()}"`;
             }
             const resp = await window.puter.ai.chat(prompt);
             const aiReply = resp?.message?.content || (lang === 'en' ? "I'm having trouble thinking right now." : "मुझे सोचने में परेशानी हो रही है।");
-            setMessages(prev => [...prev, { text: aiReply.replace(/\*\*/g, '').replace(/\*/g, ''), sender: 'ai', speakable: true }]);
+            const safeReply = typeof aiReply === 'string' ? aiReply : (aiReply?.text || JSON.stringify(aiReply) || "Error");
+            setMessages(prev => [...prev, { text: safeReply.replace(/\*\*/g, '').replace(/\*/g, ''), sender: 'ai', speakable: true }]);
         } catch (error) {
             console.error("AI Error:", error);
             setMessages(prev => [...prev, { text: lang === 'en' ? "Oops! The AI service is not available right now. Please check your connection." : "उफ़! AI सेवा अभी उपलब्ध नहीं है। कृपया अपना कनेक्शन जांचें।", sender: 'ai', speakable: true }]);

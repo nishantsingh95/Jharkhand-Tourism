@@ -83,9 +83,11 @@ const Booking = () => {
     const panoramaUrl = useMemo(() => {
         if (!destination) return '';
         let url = destination.image || 'https://picsum.photos/seed/travel/800/500';
-        if (url.includes('localhost')) {
+        if (typeof url === 'string' && url.includes('localhost')) {
             const apiUrl = resolveApiUrl();
             url = url.replace(/http:\/\/localhost:\d+/i, apiUrl);
+        } else if (typeof url !== 'string') {
+            url = 'https://picsum.photos/seed/travel/800/500';
         }
         return url;
     }, [destination]);
@@ -173,9 +175,11 @@ const Booking = () => {
     };
 
     let processedImage = destination.image || 'https://picsum.photos/seed/travel/800/500';
-    if (processedImage.includes('localhost')) {
+    if (typeof processedImage === 'string' && processedImage.includes('localhost')) {
         const apiUrl = resolveApiUrl();
         processedImage = processedImage.replace(/http:\/\/localhost:\d+/i, apiUrl);
+    } else if (typeof processedImage !== 'string') {
+        processedImage = 'https://picsum.photos/seed/travel/800/500';
     }
 
     return (
