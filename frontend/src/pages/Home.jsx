@@ -134,7 +134,7 @@ const Home = () => {
                     <div className="famous-card glass-card">
                         <img
                             className="famous-image"
-                            src="https://tse2.mm.bing.net/th/id/OIP.iVYHGUGq-KhC-pp4sj4d6AHaEK?pid=Api&P=0&h=180"
+                            src="/xlri.png"
                             alt="XLRI Jamshedpur"
                         />
                         <h3>XLRI Jamshedpur</h3>
