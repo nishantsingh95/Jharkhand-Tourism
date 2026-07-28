@@ -64,12 +64,7 @@ export default defineConfig(({ mode }) => {
               },
             },
             {
-              urlPattern: ({ url }) => {
-                if (!url.pathname.startsWith('/api/')) return false
-                if (url.origin === self.location.origin) return true
-                if (crossOriginApi && url.origin === crossOriginApi) return true
-                return false
-              },
+              urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
               handler: 'NetworkFirst',
               options: {
                 cacheName: 'api-data',

@@ -97,7 +97,9 @@ const Marketplace = () => {
         setMinRating('Any Rating');
     }, [activeTab]);
 
-    useEffect(() => window.scrollTo(0, 0), []);
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     const addToCart = (product) => {
         setCart(prev => {
