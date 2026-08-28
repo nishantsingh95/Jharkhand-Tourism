@@ -97,7 +97,7 @@ const Home = () => {
                     <div className="famous-card glass-card">
                         <img
                             className="famous-image"
-                            src="https://tse1.mm.bing.net/th/id/OIP.WaP8tf9kBkm3d0pM277OUwHaEK?pid=Api&P=0&h=180"
+                            src="https://i.ytimg.com/vi/oWIpaHFUmOY/maxresdefault.jpg"
                             alt="Betla & Dalma"
                         />
                         <h3>Betla & Dalma</h3>
@@ -106,7 +106,7 @@ const Home = () => {
                     <div className="famous-card glass-card">
                         <img
                             className="famous-image"
-                            src="https://i.pinimg.com/originals/08/95/38/089538756e47605c5b6c632b13cf8dbe.jpg"
+                            src="https://static.wixstatic.com/media/9dd462_946b456edae54982870ebcdf14ab6a76~mv2.jpg/v1/fill/w_980,h_1319,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/9dd462_946b456edae54982870ebcdf14ab6a76~mv2.jpg"
                             alt="Sohrai Art"
                         />
                         <h3>Sohrai Art</h3>
@@ -192,7 +192,7 @@ const Home = () => {
                         <div className="famous-card glass-card" style={{ background: 'white' }}>
                             <img
                                 className="famous-image"
-                                src="https://www.vifindia.org/sites/default/files/maatighar.jpg"
+                                src="https://static.wixstatic.com/media/9dd462_946b456edae54982870ebcdf14ab6a76~mv2.jpg/v1/fill/w_980,h_1319,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/9dd462_946b456edae54982870ebcdf14ab6a76~mv2.jpg"
                                 alt="Sohrai Art"
                             />
                             <h3>Sohrai Art</h3>
