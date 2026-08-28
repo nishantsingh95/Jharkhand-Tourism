@@ -2,6 +2,10 @@
 
 A state-of-the-art Jharkhand Tourism platform designed to provide a premium, immersive experience for tourists while offering powerful administrative oversight through a data-driven dashboard.
 
+## 🌐 Live Demo
+🔗 **Visit the Live Application**: [https://jharkhandtourismm.netlify.app/](https://jharkhandtourismm.netlify.app/)
+
+
 ## 🚀 Features
 
 ### 🏨 Tourist Experience
